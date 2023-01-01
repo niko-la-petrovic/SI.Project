@@ -2,20 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SI.Project.IdentityServer.Data;
 
 #nullable disable
 
-namespace SI.Project.IdentityServer.SI.Project.IdentityServer.Migrations.IdentityDb
+namespace SI.Project.IdentityServer.Migrations.IdentityDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230101142407_InitialCreate")]
-    partial class InitialCreate
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.1");

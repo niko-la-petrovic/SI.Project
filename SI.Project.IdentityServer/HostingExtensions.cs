@@ -20,7 +20,8 @@ internal static class HostingExtensions
         var services = builder.Services;
         var configuration = builder.Configuration;
 
-        services.AddRazorPages();
+        services.AddRazorPages()
+            .AddRazorRuntimeCompilation();
 
         var connectionString = configuration.GetConnectionString("DefaultConnection");
         var identityConnectionString = configuration.GetConnectionString("IdentityConnection");
