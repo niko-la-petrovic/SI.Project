@@ -1,8 +1,10 @@
+using Duende.IdentityServer;
 using Duende.IdentityServer.Events;
 using Duende.IdentityServer.Extensions;
 using Duende.IdentityServer.Services;
 using IdentityModel;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -66,7 +68,7 @@ public class Index : PageModel
             LogoutId ??= await _interaction.CreateLogoutContextAsync();
                 
             // delete local authentication cookie
-            await HttpContext.SignOutAsync();
+            await HttpContext.SignOutAsync(IdentityServerConstants.DefaultCookieAuthenticationScheme);
 
             // raise the logout event
             await _events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));

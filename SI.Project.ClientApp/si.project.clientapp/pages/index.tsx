@@ -1,13 +1,109 @@
+import { Inter, Roboto } from "@next/font/google";
+import { getSession, signIn, signOut, useSession } from "next-auth/react";
+
 import Head from "next/head";
 import Image from "next/image";
-import { Inter } from "@next/font/google";
+import forge from "node-forge";
 import styles from "../styles/Home.module.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
+  const { data: session } = useSession();
 
-  
+  const generateCert = () => {
+    const keyPair = forge.pki.rsa.generateKeyPair(2048);
+    const pubKey = keyPair.publicKey;
+    const privKey = keyPair.privateKey;
+
+    const cert = forge.pki.createCertificate();
+    cert.publicKey = pubKey;
+    cert.privateKey = privKey;
+    cert.serialNumber = "01";
+    cert.validity.notBefore = new Date();
+    cert.validity.notAfter = new Date();
+    cert.validity.notAfter.setFullYear(
+      cert.validity.notBefore.getFullYear() + 1
+    );
+    const attrs = [
+      {
+        name: "commonName",
+        value: "example.org",
+      },
+      {
+        name: "countryName",
+        value: "US",
+      },
+      {
+        shortName: "ST",
+        value: "Virginia",
+      },
+      {
+        name: "localityName",
+        value: "Blacksburg",
+      },
+      {
+        name: "organizationName",
+        value: "Test",
+      },
+      {
+        shortName: "OU",
+        value: "Test",
+      },
+    ];
+    cert.setSubject(attrs);
+    cert.setIssuer(attrs);
+    cert.setExtensions([
+      {
+        name: "basicConstraints",
+        cA: true,
+      },
+      {
+        name: "keyUsage",
+        keyCertSign: true,
+        digitalSignature: true,
+        nonRepudiation: true,
+        keyEncipherment: true,
+        dataEncipherment: true,
+      },
+      {
+        name: "extKeyUsage",
+
+        serverAuth: true,
+        clientAuth: true,
+        codeSigning: true,
+        emailProtection: true,
+        timeStamping: true,
+      },
+      {
+        name: "nsCertType",
+        client: true,
+        server: true,
+        email: true,
+        objsign: true,
+        sslCA: true,
+        emailCA: true,
+        objCA: true,
+      },
+      // {
+      //   name: "subjectAltName",
+      // },
+      // {
+      //   name: "subjectKeyIdentifier",
+      // },
+    ]);
+    cert.sign(privKey, forge.md.sha256.create());
+
+    var pem = {
+      privateKey: forge.pki.privateKeyToPem(keyPair.privateKey),
+      publicKey: forge.pki.publicKeyToPem(keyPair.publicKey),
+      certificate: forge.pki.certificateToPem(cert),
+    };
+    console.log(pem.privateKey);
+    console.log(pem.publicKey);
+    console.log(pem.certificate);
+  };
+
   return (
     <>
       <Head>
@@ -59,6 +155,23 @@ export default function Home() {
               priority
             />
           </div>
+        </div>
+
+        <div className="flex flex-col">
+          {session ? (
+            <div className="flex flex-col">
+              <p>{JSON.stringify(session.user)}</p>
+              <button onClick={() => signOut()}>Sign Out</button>
+            </div>
+          ) : (
+            <div>
+              <button onClick={() => signIn("identityServer")}>Sign In</button>
+            </div>
+          )}
+        </div>
+
+        <div>
+          <button onClick={() => generateCert()}>Generate Cert</button>
         </div>
 
         <div className={styles.grid}>
