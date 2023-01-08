@@ -1,0 +1,3 @@
+export enum AuthErrorType {
+  EXPIRED_REFRESH_TOKEN = "EXPIRED_REFRESH_TOKEN",
+}

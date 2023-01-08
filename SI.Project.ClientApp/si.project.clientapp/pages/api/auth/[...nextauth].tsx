@@ -5,6 +5,7 @@ import {
   getScopes,
 } from "../../../services/auth";
 
+import { AuthErrorType } from "../../../types/auth";
 import { Console } from "console";
 import IdentityServerProvider from "next-auth/providers/identity-server4";
 import { JWT } from "next-auth/jwt";
@@ -48,6 +49,7 @@ async function refreshAccessToken(token: JWT) {
 
     return {
       ...token,
+      error: AuthErrorType.EXPIRED_REFRESH_TOKEN,
       // TODO error handling
     };
   }
@@ -85,7 +87,8 @@ export default NextAuth({
     async session({ session, token: tokens, user }) {
       session.user = tokens.user;
       session.accessToken = tokens.accessToken;
-      // session.idToken = tokens.idToken;
+      session.error = tokens.error;
+      session.idToken = tokens.idToken;
 
       return session;
       // TODO

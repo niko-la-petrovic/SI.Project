@@ -1,5 +1,6 @@
 ﻿using SI.Project.IdentityServer;
 using Serilog;
+using SI.Project.IdentityServer.Extensions;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()

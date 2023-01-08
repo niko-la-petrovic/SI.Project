@@ -1,4 +1,4 @@
-@tailwind base;
+/* @tailwind base; */
 @tailwind components;
 @tailwind utilities;
 
@@ -108,4 +108,15 @@ a {
   html {
     color-scheme: dark;
   }
+}
+
+#nprogress .bar {
+  height: 7px !important;
+  @apply bg-primary !important;
+}
+
+#nprogress .spinner-icon {
+  width: 36px !important;
+  height: 36px !important;
+  @apply text-primary !important;
 }
