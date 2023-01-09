@@ -7,26 +7,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="flex flex-col">
-        {session ? (
-          <div className="flex flex-col">
-            <p>{JSON.stringify(session.user)}</p>
-            <p>{JSON.stringify(session.accessToken)}</p>
-            <Button variant="contained" onClick={() => signOut()}>
-              Sign Out
-            </Button>
-          </div>
-        ) : (
-          <div>
-            <Button
-              variant="contained"
-              onClick={() => signIn("identityServer")}
-            >
-              Sign In
-            </Button>
-          </div>
-        )}
-      </div>
+      <div className="flex flex-col"></div>
     </>
   );
 }

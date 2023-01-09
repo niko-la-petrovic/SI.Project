@@ -14,6 +14,8 @@ using SI.Project.IdentityServer.Hubs;
 using SI.Project.IdentityServer.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using IdentityModel.OidcClient;
+using Hellang.Middleware.ProblemDetails;
+using SI.Project.IdentityServer.Services.Identity;
 
 namespace SI.Project.IdentityServer.Extensions;
 
@@ -23,6 +25,7 @@ internal static class HostingExtensions
     {
         var services = builder.Services;
         var configuration = builder.Configuration;
+        var env = builder.Environment;
 
         services.AddCors(options =>
         {
@@ -36,7 +39,10 @@ internal static class HostingExtensions
             });
         });
 
-        services.AddControllers();
+        services
+            .AddProblemDetails(env)
+            .AddControllers()
+            .AddProblemDetailsConvention(env);
         services.AddSignalR();
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
@@ -52,8 +58,12 @@ internal static class HostingExtensions
             options.UseSqlite(identityConnectionString);
         });
 
-        services.AddIdentity<ApplicationUser, IdentityRole>()
+        services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        {
+            options.User.RequireUniqueEmail = true; // TODO migration for unique index?
+        })
             .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddUserManager<SIUserManager>()
             .AddDefaultTokenProviders();
 
         var isBuilder = services
@@ -86,7 +96,9 @@ internal static class HostingExtensions
                 // this enables automatic token cleanup. this is optional.
                 options.EnableTokenCleanup = true;
                 options.RemoveConsumedTokens = true;
-            });
+            })
+            .AddAspNetIdentity<ApplicationUser>();
+
 
         services.AddAuthentication()
         .AddJwtBearer(options =>
@@ -182,6 +194,7 @@ internal static class HostingExtensions
         }
 
         app.UseCors(CorsPolicies.AllowClientApp);
+        app.UseProblemDetails();
 
         app.UseStaticFiles();
         app.UseRouting();

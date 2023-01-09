@@ -40,12 +40,18 @@ export default function Header({
           <Link href="/account">
             <span>Account</span>
           </Link>
+          <Link href="/advanced">
+            <span>Advanced</span>
+          </Link>
         </nav>
-        <div>
+        <div className="flex items-center justify-start gap-4 ">
           {session ? (
-            <Button variant="contained" onClick={() => signOut()}>
-              Sign Out
-            </Button>
+            <>
+              <span className="text-lg font-bold">{session?.user?.name}</span>
+              <Button variant="contained" onClick={() => signOut()}>
+                Sign Out
+              </Button>
+            </>
           ) : (
             <div>
               <Button
@@ -77,6 +83,9 @@ export default function Header({
               <MdClose className="text-3xl" />
             </Button>
           </div>
+          {/* TODO use response app bar with drawer */}
+          {/* https://mui.com/material-ui/react-app-bar/#responsive-app-bar-with-drawer */}
+          {/* TODO adjust links */}
           <List>
             {[
               { text: "Početna", icon: <MdDashboard />, href: "/" },

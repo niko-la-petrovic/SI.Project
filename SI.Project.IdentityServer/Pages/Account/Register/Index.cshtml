@@ -1,0 +1,36 @@
+﻿@page
+@model SI.Project.IdentityServer.Pages.Account.Register.IndexModel
+@{
+}
+
+<h1>
+    Register
+</h1>
+<partial name="_ValidationSummary" />
+
+<div class="row">
+    <div class="col-md-6">
+        <form method="post">
+            <div class="form-group">
+                <label asp-for="@Model.Input.Username"></label>
+                <input class="form-control" asp-for="@Model.Input.Username" autofocus />
+            </div>
+            <div class="form-group">
+                <label asp-for="@Model.Input.Email"></label>
+                <input class="form-control" asp-for="@Model.Input.Email" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@Model.Input.Password"></label>
+                <input class="form-control" asp-for="@Model.Input.Password" type="password" />
+            </div>
+            <div class="form-group">
+                <label asp-for="@Model.Input.ConfirmPassword">Confirm Password</label>
+                <input class="form-control" asp-for="@Model.Input.ConfirmPassword" type="password" />
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" name="Input.Button" value="register">Register</button>
+                <button class="btn btn-secondary" name="Input.Button" value="cancel">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>

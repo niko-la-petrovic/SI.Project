@@ -12,4 +12,18 @@ public class UserDetails : DatedEntity
     public string? PublicKey { get; set; }
 
     public virtual ApplicationUser User { get; set; }
+
+    public UserDetails(
+        string userId,
+        string? givenName,
+        string? lastName,
+        DateTime? birthDate,
+        string? publicKey)
+    {
+        UserId = userId;
+        GivenName = givenName;
+        LastName = lastName;
+        BirthDate = birthDate;
+        PublicKey = publicKey;
+    }
 }

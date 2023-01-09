@@ -30,7 +30,7 @@ export default function Layout({ children }: LayoutProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [certStore, certStoreDispatch] = useReducer(
     certStoreReducer,
     certStoreInitialState
@@ -73,7 +73,7 @@ export default function Layout({ children }: LayoutProps) {
       signIn("identityServer");
     }
 
-    if (!session && router.pathname !== "/unauthenticated")
+    if (status === "unauthenticated" && router.pathname !== "/unauthenticated")
       router.push("/unauthenticated");
 
     if (session && router.pathname === "/unauthenticated") router.push("/");

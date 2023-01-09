@@ -64,6 +64,10 @@ export default NextAuth({
       authorization: { params: { scope: getScopes() } },
       clientId: getClientId(),
       clientSecret: getClientSecret(),
+      // TODO userinfo
+      // userinfo: {
+      //   url: `${process.env.IS_ISSUER}/connect/userinfo`,
+      // },
     }),
   ],
   callbacks: {

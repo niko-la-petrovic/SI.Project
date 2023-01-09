@@ -6,6 +6,8 @@ namespace SI.Project.IdentityServer.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
+    public DbSet<UserDetails> UserDetails { get; set; }
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {

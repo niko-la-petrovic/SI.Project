@@ -6,6 +6,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Hellang.Middleware.ProblemDetails" Version="6.5.1" />
+		<PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="6.1.4" />
 		<PackageReference Include="Duende.IdentityServer.EntityFramework" Version="6.2.0" />
 		<PackageReference Include="IdentityModel.OidcClient" Version="5.2.1" />
 
@@ -30,7 +32,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Dtos\" />
 		<Folder Include="wwwroot\" />
 	</ItemGroup>
 

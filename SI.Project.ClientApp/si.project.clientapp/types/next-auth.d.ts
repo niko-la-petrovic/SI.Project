@@ -12,10 +12,9 @@ declare module "next-auth" {
   }
 
   interface User extends DefaultUser {
-    backEndId?: string | undefined;
     id: string;
     email: string;
-    username?: string | null | undefined;
+    name?: string | null | undefined;
   }
 
   interface Account {
