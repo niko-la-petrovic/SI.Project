@@ -58,6 +58,8 @@ public abstract class EntityOnlineStatusService<TEntity> : IEntityOnlineStatusSe
         return _onlineStatuses.Values.Where(x => x.LastHeartbeatTime <= lastHeartbeatTime);
     }
 
+
+
     public IEnumerable<TEntity> GetOnlineStatuses(DateTime lastHeartbeatTime, IEnumerable<string> ids)
     {
         return _onlineStatuses.Values.Where(x => x.LastHeartbeatTime > lastHeartbeatTime && ids.Contains(x.Id));
@@ -106,5 +108,15 @@ public abstract class EntityOnlineStatusService<TEntity> : IEntityOnlineStatusSe
     public IEnumerable<TEntity> GetOfflineStatuses(IEnumerable<string> ids, bool isOnline)
     {
         return _onlineStatuses.Values.Where(x => ids.Contains(x.Id) && x.IsOnline == isOnline);
+    }
+
+    public IEnumerable<TEntity> RemoveOldStatuses(DateTime lastHeartbeatTime)
+    {
+        var oldStatuses = _onlineStatuses.Values
+            .Where(x => x.LastHeartbeatTime <= lastHeartbeatTime);
+        foreach (var oldStatus in oldStatuses)
+            _onlineStatuses.TryRemove(oldStatus.Id, out _);
+
+        return oldStatuses;
     }
 }

@@ -3,17 +3,20 @@ import {
   certStoreInitialState,
   certStoreReducer,
 } from "../../store/cert-store";
+import {
+  HubConnection,
+  HubConnectionBuilder,
+  HubConnectionState,
+} from "@microsoft/signalr";
 import { signIn, useSession } from "next-auth/react";
 import { useEffect, useReducer, useState } from "react";
 
 import Footer from "../organisms/footer";
 import Head from "next/head";
 import Header from "../organisms/header";
-import { HubConnection } from "@microsoft/signalr/dist/esm/HubConnection";
-import { HubConnectionBuilder } from "@microsoft/signalr";
-import { createSignalRContext } from "react-signalr";
 import { getIsApiUrl } from "../../services/auth";
 import { toast } from "react-toastify";
+import { useInterval } from "usehooks-ts";
 import { useRouter } from "next/router";
 
 export interface ComponentProps {
@@ -23,9 +26,7 @@ export interface ComponentProps {
 
 export interface LayoutProps extends ComponentProps {}
 
-const SignalRContext = createSignalRContext();
-
-export default function Layout({ children, ...props }: LayoutProps) {
+export default function Layout({ children }: LayoutProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const router = useRouter();
@@ -44,18 +45,27 @@ export default function Layout({ children, ...props }: LayoutProps) {
       .withUrl(`${getIsApiUrl()}/hubs/client-online`, {
         accessTokenFactory: () => accessToken,
       })
-      .withAutomaticReconnect()
+      .withAutomaticReconnect() // TODO reconnect logic
       .build();
 
     newConnection.on("ReceiveMessage", (user, message) => {
       toast(`${user}: ${message}`);
     });
+    newConnection.onclose(() => {
+      toast("Connection closed");
+    });
+    newConnection.onreconnecting(() => {
+      toast("Connection reconnecting");
+    });
+
     newConnection.start();
 
     setConnection(newConnection);
   }, [session?.accessToken]);
 
-  // TODO
+  const isWorkingConnection =
+    connection && connection.state === HubConnectionState.Connected;
+
   useEffect(() => {
     if (session?.error) {
       // TODO - handle
@@ -68,6 +78,12 @@ export default function Layout({ children, ...props }: LayoutProps) {
 
     if (session && router.pathname === "/unauthenticated") router.push("/");
   }, [router, session]);
+
+  useInterval(() => {
+    if (!isWorkingConnection) return;
+
+    connection?.invoke("SendHeartbeat");
+  }, 5000);
 
   return (
     <div className="layout">
@@ -83,13 +99,16 @@ export default function Layout({ children, ...props }: LayoutProps) {
         <main className={`flex flex-col min-h-screen justify-between`}>
           <Header drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen} />
           {children}
-          <button
+          {/* TODO remove */}
+          {/* <button
             onClick={() => {
+              if (!isWorkingConnection) return;
               connection?.invoke("SendMessage", "user", "message");
+              connection?.invoke("SendHeartbeat");
             }}
           >
             Send Message
-          </button>
+          </button> */}
           <Footer />
         </main>
       </CertStoreContext.Provider>

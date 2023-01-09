@@ -29,4 +29,38 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             ud.HasKey(ud => ud.UserId);
         });
     }
+
+    public override int SaveChanges()
+    {
+        AdjustEntities();
+        return base.SaveChanges();
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        AdjustEntities();
+
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    private void AdjustEntities()
+    {
+        var entries = ChangeTracker
+                      .Entries()
+                      .Where(e => e.Entity is DatedEntity && (
+                          e.State == EntityState.Added
+                          || e.State == EntityState.Modified));
+
+        var now = DateTime.UtcNow;
+
+        foreach (var entityEntry in entries)
+        {
+            ((DatedEntity)entityEntry.Entity).UpdatedDate = now;
+
+            if (entityEntry.State == EntityState.Added)
+            {
+                ((DatedEntity)entityEntry.Entity).CreatedDate = now;
+            }
+        }
+    }
 }

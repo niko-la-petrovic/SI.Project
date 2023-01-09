@@ -37,9 +37,6 @@ export default function Header({
           <Link href="/">
             <span>Home</span>
           </Link>
-          <Link href="/certs/create">
-            <span>Create Cert</span>
-          </Link>
           <Link href="/account">
             <span>Account</span>
           </Link>

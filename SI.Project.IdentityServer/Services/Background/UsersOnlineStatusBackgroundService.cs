@@ -16,7 +16,12 @@ public class UsersOnlineStatusBackgroundService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            //_logger.LogInformation("UsersOnlineStatusBackgroundService is running.");
+            _logger.LogInformation("UsersOnlineStatusBackgroundService is running.");
+
+            var removedStatuses = _usersOnlineStatusService.RemoveOldStatuses(DateTime.UtcNow.AddSeconds(-30));
+            if (removedStatuses.Any())
+                _logger.LogInformation("Removed {0} old statuses.", removedStatuses.Count());
+
             await Task.Delay(10000, stoppingToken);
         }
     }

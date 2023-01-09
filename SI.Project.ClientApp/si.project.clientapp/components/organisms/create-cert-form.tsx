@@ -12,6 +12,7 @@ import {
 import { DateTimePicker } from "@mui/x-date-pickers";
 import { addYears } from "date-fns";
 import forge from "node-forge";
+import { saveAs } from "file-saver";
 import { useFormik } from "formik";
 
 const validationSchema = yup.object({
@@ -30,7 +31,7 @@ const validationSchema = yup.object({
   notAfter: yup.date().required("Required"),
 });
 
-export default function Create() {
+export default function CreateCertForm() {
   const formik = useFormik({
     initialValues: {
       keyLength: 2048,
@@ -151,6 +152,13 @@ export default function Create() {
         publicKey: forge.pki.publicKeyToPem(keyPair.publicKey),
         certificate: forge.pki.certificateToPem(cert),
       };
+
+      // TODO useContext to save the certificate/pub/priv keys
+
+      saveAs(new Blob([pem.certificate]), "certificate.pem");
+      saveAs(new Blob([pem.privateKey]), "privateKey.pem");
+      saveAs(new Blob([pem.publicKey]), "publicKey.pem");
+
       console.log(pem.privateKey);
       console.log(pem.publicKey);
       console.log(pem.certificate);
@@ -158,8 +166,7 @@ export default function Create() {
   });
 
   return (
-    <div className="flex flex-col gap-y-8 p-8">
-      <p className="text-xl">Create a certificate</p>
+    <div className="flex flex-col gap-y-8">
       <form onSubmit={formik.handleSubmit}>
         <div className="flex flex-col gap-y-8 w-full md:w-[420px]">
           <FormControl>
