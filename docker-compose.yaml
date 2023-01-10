@@ -5,6 +5,12 @@ volumes:
   #   external: true
   sni_rmq_data:
     external: true
+  sni_rmq_conf:
+    external: true
+
+networks:
+  seq:
+    external: true
 
 services:
   # redis:
@@ -25,8 +31,16 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=client
       - RABBITMQ_DEFAULT_PASS=pass
+      - management.enable_uaa=true
+      - management.oauth_enabled=true
+      - management.oauth_client_id=rabbit_user_client
+      - management.oauth_client_secret=rabbit_user_client_secret
+      - management.oauth_provider_url=https://localhost:5111
     ports:
       - 5672:5672
       - 15672:15672
     volumes:
       - sni_rmq_data:/var/lib/rabbitmq/
+      - //c/Users/Blue-Glass/source/repos/SI.Project/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.config
+    networks:
+      - seq

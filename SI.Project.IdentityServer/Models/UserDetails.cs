@@ -8,8 +8,8 @@ public class UserDetails : DatedEntity
 
     public string? GivenName { get; set; }
     public string? LastName { get; set; }
-    public DateTime? BirthDate { get; set; }
-    public string? PublicKey { get; set; }
+    public string? BirthDate { get; set; }
+    public string PublicKey { get; set; }
 
     public virtual ApplicationUser User { get; set; }
 
@@ -17,8 +17,8 @@ public class UserDetails : DatedEntity
         string userId,
         string? givenName,
         string? lastName,
-        DateTime? birthDate,
-        string? publicKey)
+        string? birthDate,
+        string publicKey)
     {
         UserId = userId;
         GivenName = givenName;

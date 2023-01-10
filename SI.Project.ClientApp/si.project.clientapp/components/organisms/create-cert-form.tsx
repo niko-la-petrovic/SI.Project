@@ -8,11 +8,13 @@ import {
   Select,
   TextField,
 } from "@mui/material";
+import { CertStoreActionType, CertStoreContext } from "../../store/cert-store";
 
 import { DateTimePicker } from "@mui/x-date-pickers";
 import { addYears } from "date-fns";
 import forge from "node-forge";
 import { saveAs } from "file-saver";
+import { useContext } from "react";
 import { useFormik } from "formik";
 
 const validationSchema = yup.object({
@@ -162,8 +164,20 @@ export default function CreateCertForm() {
       console.log(pem.privateKey);
       console.log(pem.publicKey);
       console.log(pem.certificate);
+
+      certStoreDispatch({
+        type: CertStoreActionType.SET_PEM_CERT,
+        cert: pem.certificate,
+      });
+      certStoreDispatch({
+        type: CertStoreActionType.SET_PEM_CERT_PRIVATE_KEY,
+        certPrivateKey: pem.privateKey,
+      });
     },
   });
+
+  const { state: certStoreState, dispatch: certStoreDispatch } =
+    useContext(CertStoreContext);
 
   return (
     <div className="flex flex-col gap-y-8">
@@ -272,7 +286,12 @@ export default function CreateCertForm() {
           <DateTimePicker
             label="Not Before"
             value={formik.values.notBefore}
-            onChange={formik.handleChange}
+            onChange={(value) => {
+              formik.setFieldValue(
+                "notBefore",
+                value instanceof Date ? value : undefined
+              );
+            }}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -286,7 +305,12 @@ export default function CreateCertForm() {
           <DateTimePicker
             label="Not After"
             value={formik.values.notAfter}
-            onChange={formik.handleChange}
+            onChange={(value) => {
+              formik.setFieldValue(
+                "notAfter",
+                value instanceof Date ? value : undefined
+              );
+            }}
             renderInput={(params) => (
               <TextField
                 {...params}

@@ -51,8 +51,11 @@ export default function Account() {
             <Typography className="text-xl">Create a certificate</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <div className="flex flex-col gap-4">
-              <div>This will ...</div>
+            <div className="flex flex-col gap-8">
+              <div>
+                Create a digital certificate (X.509) to enable encryption of
+                messages and personal information.
+              </div>
               <CreateCertForm />
             </div>
           </AccordionDetails>
@@ -65,7 +68,7 @@ export default function Account() {
             <div className="flex flex-col gap-4">
               <div>
                 Your information is stored encrypted on the Identity Server
-                using your private key!
+                using your private key.
               </div>
               <UpdateUserDetailsForm />
             </div>

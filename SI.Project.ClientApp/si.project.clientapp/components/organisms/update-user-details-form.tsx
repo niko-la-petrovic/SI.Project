@@ -133,8 +133,8 @@ export default function UpdateUserDetailsForm() {
             error={formik.touched.lastName && Boolean(formik.errors.lastName)}
             helperText={formik.touched.lastName && formik.errors.lastName}
           />
-          {/* TODO onchange not working */}
           {/* TODO use private key to encrypt */}
+          {/* TODO prevent other fields from being updated if public key not provided */}
           <DatePicker
             label="Birth Date"
             value={formik.values.birthDate}
