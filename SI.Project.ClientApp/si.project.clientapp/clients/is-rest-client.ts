@@ -49,6 +49,13 @@ export module back_end {
                 result200 = GetUserDetailsDto.fromJS(resultData200);
                 return result200;
                 });
+            } else if (status === 404) {
+                return response.text().then((_responseText) => {
+                let result404: any = null;
+                let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result404 = ProblemDetails.fromJS(resultData404);
+                return throwException("Not Found", status, _responseText, _headers, result404);
+                });
             } else if (status !== 200 && status !== 204) {
                 return response.text().then((_responseText) => {
                 return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -248,7 +255,7 @@ export module back_end {
         userId?: string | undefined;
         givenName?: string | undefined;
         lastName?: string | undefined;
-        birthDate?: Date | undefined;
+        birthDate?: string | undefined;
         publicKey?: string | undefined;
     
         constructor(data?: IGetUserDetailsDto) {
@@ -265,7 +272,7 @@ export module back_end {
                 this.userId = _data["userId"];
                 this.givenName = _data["givenName"];
                 this.lastName = _data["lastName"];
-                this.birthDate = _data["birthDate"] ? new Date(_data["birthDate"].toString()) : <any>undefined;
+                this.birthDate = _data["birthDate"];
                 this.publicKey = _data["publicKey"];
             }
         }
@@ -282,7 +289,7 @@ export module back_end {
             data["userId"] = this.userId;
             data["givenName"] = this.givenName;
             data["lastName"] = this.lastName;
-            data["birthDate"] = this.birthDate ? this.birthDate.toISOString() : <any>undefined;
+            data["birthDate"] = this.birthDate;
             data["publicKey"] = this.publicKey;
             return data;
         }
@@ -292,14 +299,14 @@ export module back_end {
         userId?: string | undefined;
         givenName?: string | undefined;
         lastName?: string | undefined;
-        birthDate?: Date | undefined;
+        birthDate?: string | undefined;
         publicKey?: string | undefined;
     }
     
     export class PostUserDetailsDto implements IPostUserDetailsDto {
         givenName?: string | undefined;
         lastName?: string | undefined;
-        birthDate?: Date | undefined;
+        birthDate?: string | undefined;
         publicKey?: string | undefined;
     
         constructor(data?: IPostUserDetailsDto) {
@@ -315,7 +322,7 @@ export module back_end {
             if (_data) {
                 this.givenName = _data["givenName"];
                 this.lastName = _data["lastName"];
-                this.birthDate = _data["birthDate"] ? new Date(_data["birthDate"].toString()) : <any>undefined;
+                this.birthDate = _data["birthDate"];
                 this.publicKey = _data["publicKey"];
             }
         }
@@ -331,7 +338,7 @@ export module back_end {
             data = typeof data === 'object' ? data : {};
             data["givenName"] = this.givenName;
             data["lastName"] = this.lastName;
-            data["birthDate"] = this.birthDate ? this.birthDate.toISOString() : <any>undefined;
+            data["birthDate"] = this.birthDate;
             data["publicKey"] = this.publicKey;
             return data;
         }
@@ -340,14 +347,66 @@ export module back_end {
     export interface IPostUserDetailsDto {
         givenName?: string | undefined;
         lastName?: string | undefined;
-        birthDate?: Date | undefined;
+        birthDate?: string | undefined;
         publicKey?: string | undefined;
+    }
+    
+    export class ProblemDetails implements IProblemDetails {
+        type?: string | undefined;
+        title?: string | undefined;
+        status?: number | undefined;
+        detail?: string | undefined;
+        instance?: string | undefined;
+    
+        constructor(data?: IProblemDetails) {
+            if (data) {
+                for (var property in data) {
+                    if (data.hasOwnProperty(property))
+                        (<any>this)[property] = (<any>data)[property];
+                }
+            }
+        }
+    
+        init(_data?: any) {
+            if (_data) {
+                this.type = _data["type"];
+                this.title = _data["title"];
+                this.status = _data["status"];
+                this.detail = _data["detail"];
+                this.instance = _data["instance"];
+            }
+        }
+    
+        static fromJS(data: any): ProblemDetails {
+            data = typeof data === 'object' ? data : {};
+            let result = new ProblemDetails();
+            result.init(data);
+            return result;
+        }
+    
+        toJSON(data?: any) {
+            data = typeof data === 'object' ? data : {};
+            data["type"] = this.type;
+            data["title"] = this.title;
+            data["status"] = this.status;
+            data["detail"] = this.detail;
+            data["instance"] = this.instance;
+            return data;
+        }
+    }
+    
+    export interface IProblemDetails {
+        type?: string | undefined;
+        title?: string | undefined;
+        status?: number | undefined;
+        detail?: string | undefined;
+        instance?: string | undefined;
     }
     
     export class PutUserDetailsDto implements IPutUserDetailsDto {
         givenName?: string | undefined;
         lastName?: string | undefined;
-        birthDate?: Date | undefined;
+        birthDate?: string | undefined;
         publicKey?: string | undefined;
     
         constructor(data?: IPutUserDetailsDto) {
@@ -363,7 +422,7 @@ export module back_end {
             if (_data) {
                 this.givenName = _data["givenName"];
                 this.lastName = _data["lastName"];
-                this.birthDate = _data["birthDate"] ? new Date(_data["birthDate"].toString()) : <any>undefined;
+                this.birthDate = _data["birthDate"];
                 this.publicKey = _data["publicKey"];
             }
         }
@@ -379,7 +438,7 @@ export module back_end {
             data = typeof data === 'object' ? data : {};
             data["givenName"] = this.givenName;
             data["lastName"] = this.lastName;
-            data["birthDate"] = this.birthDate ? this.birthDate.toISOString() : <any>undefined;
+            data["birthDate"] = this.birthDate;
             data["publicKey"] = this.publicKey;
             return data;
         }
@@ -388,7 +447,7 @@ export module back_end {
     export interface IPutUserDetailsDto {
         givenName?: string | undefined;
         lastName?: string | undefined;
-        birthDate?: Date | undefined;
+        birthDate?: string | undefined;
         publicKey?: string | undefined;
     }
     

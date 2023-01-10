@@ -25,7 +25,8 @@ export default function Account() {
         <CardContent className="grid gap-8 p-8 grid-cols-2">
           <TextField
             label="Username"
-            value={session?.user?.name}
+            value={session?.user?.name || ""}
+            onChange={(e) => {}}
             InputProps={{
               readOnly: true,
             }}
@@ -35,7 +36,8 @@ export default function Account() {
           />
           <TextField
             label="Email"
-            value={session?.user?.email}
+            value={session?.user?.email || ""}
+            onChange={(e) => {}}
             InputProps={{
               readOnly: true,
             }}

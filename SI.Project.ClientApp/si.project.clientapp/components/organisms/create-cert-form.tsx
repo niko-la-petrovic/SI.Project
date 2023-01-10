@@ -32,6 +32,7 @@ const validationSchema = yup.object({
   notBefore: yup.date().required("Required"),
   notAfter: yup.date().required("Required"),
 });
+// TODO set required on text fields and don't make everything required
 
 export default function CreateCertForm() {
   const formik = useFormik({
@@ -166,12 +167,12 @@ export default function CreateCertForm() {
       console.log(pem.certificate);
 
       certStoreDispatch({
-        type: CertStoreActionType.SET_PEM_CERT,
-        cert: pem.certificate,
+        type: CertStoreActionType.SET_PEM_PUBLIC_KEY,
+        publicKey: pem.certificate,
       });
       certStoreDispatch({
-        type: CertStoreActionType.SET_PEM_CERT_PRIVATE_KEY,
-        certPrivateKey: pem.privateKey,
+        type: CertStoreActionType.SET_PEM_PRIVATE_KEY,
+        privateKey: pem.privateKey,
       });
     },
   });

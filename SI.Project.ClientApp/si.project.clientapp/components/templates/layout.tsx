@@ -1,5 +1,8 @@
 import {
+  CertStoreActionType,
   CertStoreContext,
+  CertStoreLocalStorageKey,
+  CertStoreState,
   certStoreInitialState,
   certStoreReducer,
 } from "../../store/cert-store";
@@ -36,6 +39,22 @@ export default function Layout({ children }: LayoutProps) {
     certStoreInitialState
   );
   const [connection, setConnection] = useState<HubConnection | null>(null);
+
+  const [certStoreLoaded, setCertStoreLoaded] = useState<boolean>(false);
+  useEffect(() => {
+    const storedCertStoreJson = localStorage.getItem(CertStoreLocalStorageKey);
+    storedCertStoreJson &&
+      certStoreDispatch({
+        type: CertStoreActionType.SET_STATE,
+        state: JSON.parse(storedCertStoreJson),
+      });
+    setCertStoreLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!certStoreLoaded) return;
+    localStorage.setItem(CertStoreLocalStorageKey, JSON.stringify(certStore));
+  }, [certStore, certStoreLoaded]);
 
   useEffect(() => {
     const accessToken = session?.accessToken;
@@ -77,7 +96,7 @@ export default function Layout({ children }: LayoutProps) {
       router.push("/unauthenticated");
 
     if (session && router.pathname === "/unauthenticated") router.push("/");
-  }, [router, session]);
+  }, [router, session, status]);
 
   useInterval(() => {
     if (!isWorkingConnection) return;

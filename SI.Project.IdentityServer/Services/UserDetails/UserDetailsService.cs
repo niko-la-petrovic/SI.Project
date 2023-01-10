@@ -2,7 +2,6 @@
 using SI.Project.IdentityServer.Data;
 using SI.Project.IdentityServer.Dtos;
 using SI.Project.IdentityServer.Exceptions;
-using SI.Project.IdentityServer.Models;
 
 namespace SI.Project.IdentityServer.Services.UserDetails;
 

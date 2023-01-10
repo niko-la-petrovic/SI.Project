@@ -43,6 +43,9 @@ export default function Header({
           <Link href="/advanced">
             <span>Advanced</span>
           </Link>
+          <Link href="/users">
+            <span>Users</span>
+          </Link>
         </nav>
         <div className="flex items-center justify-start gap-4 ">
           {session ? (
