@@ -12,6 +12,7 @@ import { getIsRestClient } from "../../services/is-rest-client";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
 
+// TODO check that the private key matches the public key
 const validationSchema = yup.object({
   givenName: yup.string().nullable(),
   lastName: yup.string().nullable(),
@@ -310,6 +311,7 @@ export default function UpdateUserDetailsForm() {
                 />
               </Button>
             </label>
+            {/* TODO problem with localStorage being set but the private key not showing up */}
             {certStoreContext.state.privateKey === null && (
               <span className="ml-4 text-gray-500">
                 <Alert severity="warning">

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SI.Project.IdentityServer.Data;
-using SI.Project.IdentityServer.Dtos;
+using SI.Project.IdentityServer.Dtos.UserDetails;
 using SI.Project.IdentityServer.Exceptions;
 
 namespace SI.Project.IdentityServer.Services.UserDetails;

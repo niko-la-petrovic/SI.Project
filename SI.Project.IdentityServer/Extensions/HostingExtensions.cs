@@ -16,6 +16,7 @@ using System.IdentityModel.Tokens.Jwt;
 using IdentityModel.OidcClient;
 using Hellang.Middleware.ProblemDetails;
 using SI.Project.IdentityServer.Services.Identity;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace SI.Project.IdentityServer.Extensions;
 
@@ -37,6 +38,14 @@ internal static class HostingExtensions
                     .AllowAnyMethod()
                     .AllowCredentials();
             });
+        });
+
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
         });
 
         services
@@ -194,6 +203,7 @@ internal static class HostingExtensions
         }
 
         app.UseCors(CorsPolicies.AllowClientApp);
+        app.UseForwardedHeaders();
         app.UseProblemDetails();
 
         app.UseStaticFiles();

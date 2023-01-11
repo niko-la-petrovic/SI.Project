@@ -1,4 +1,4 @@
-﻿using SI.Project.IdentityServer.Dtos;
+﻿using SI.Project.IdentityServer.Dtos.UserDetails;
 
 namespace SI.Project.IdentityServer.Services.UserDetails;
 

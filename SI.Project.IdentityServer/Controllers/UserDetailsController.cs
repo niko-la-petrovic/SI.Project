@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SI.Project.IdentityServer.Dtos;
+using SI.Project.IdentityServer.Dtos.UserDetails;
 using SI.Project.IdentityServer.Services.UserDetails;
 
 namespace SI.Project.IdentityServer.Controllers;

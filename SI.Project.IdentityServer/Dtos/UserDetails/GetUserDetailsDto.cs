@@ -1,4 +1,4 @@
-﻿namespace SI.Project.IdentityServer.Dtos;
+﻿namespace SI.Project.IdentityServer.Dtos.UserDetails;
 
 public class GetUserDetailsDto
 {

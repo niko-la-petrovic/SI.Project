@@ -1,8 +1,7 @@
 version: '3'
 
 volumes:
-  # mdp_redis_data:
-  #   external: true
+
   sni_rmq_data:
     external: true
   sni_rmq_conf:
@@ -13,18 +12,6 @@ networks:
     external: true
 
 services:
-  # redis:
-  #   restart: unless-stopped
-  #   image: redislabs/redismod
-  #   ports:
-  #     - 6379:6379
-  # redisinsight:
-  #   restart: unless-stopped
-  #   image: redislabs/redisinsight:latest
-  #   ports:
-  #     - '8001:8001'
-  #   volumes:
-  #     - mdp_redis_data:/db
   rabbitmq:
     restart: unless-stopped
     image: rabbitmq:3-management-alpine

@@ -49,7 +49,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         var entries = ChangeTracker
                       .Entries()
-                      .Where(e => e.Entity is DatedEntity && (
+                      .Where(e => e.Entity is IDatedEntity && (
                           e.State == EntityState.Added
                           || e.State == EntityState.Modified));
 
@@ -57,11 +57,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         foreach (var entityEntry in entries)
         {
-            ((DatedEntity)entityEntry.Entity).UpdatedDate = now;
+            ((IDatedEntity)entityEntry.Entity).UpdatedDate = now;
 
             if (entityEntry.State == EntityState.Added)
             {
-                ((DatedEntity)entityEntry.Entity).CreatedDate = now;
+                ((IDatedEntity)entityEntry.Entity).CreatedDate = now;
             }
         }
     }

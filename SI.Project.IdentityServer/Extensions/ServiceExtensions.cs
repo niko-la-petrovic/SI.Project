@@ -1,6 +1,7 @@
 ﻿using SI.Project.IdentityServer.Services;
 using SI.Project.IdentityServer.Services.Background;
 using SI.Project.IdentityServer.Services.UserDetails;
+using SI.Project.IdentityServer.Services.Users;
 
 namespace SI.Project.IdentityServer.Extensions;
 
@@ -12,6 +13,7 @@ public static class ServiceExtensions
         services.AddHostedService<UsersOnlineStatusBackgroundService>();
 
         services.AddScoped<IUserDetailsService, UserDetailsService>();
+        services.AddScoped<IUsersService, UsersService>();
 
         return services;
     }
