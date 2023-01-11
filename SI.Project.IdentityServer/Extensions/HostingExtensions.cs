@@ -158,7 +158,7 @@ internal static class HostingExtensions
         {
             services.AddAuthorization(options =>
                 options.AddPolicy("admin",
-                    policy => policy.RequireClaim("sub", "1"))
+                    policy => policy.RequireClaim("role", "admin"))
             );
 
             services.Configure<RazorPagesOptions>(options =>

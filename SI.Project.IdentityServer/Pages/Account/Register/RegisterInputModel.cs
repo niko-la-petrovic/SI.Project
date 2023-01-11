@@ -16,5 +16,5 @@ public class RegisterInputModel
     public string ConfirmPassword { get; set; }
 
     public string Button { get; set; }
-    public string ReturnUrl { get; set; }
+    public string? ReturnUrl { get; set; }
 }

@@ -49,7 +49,7 @@ public class IndexModel : PageModel
     [BindProperty]
     public RegisterInputModel Input { get; set; }
 
-    public async Task<IActionResult> OnGet(string returnUrl)
+    public async Task<IActionResult> OnGet(string? returnUrl)
     {
         await BuildModelAsync(returnUrl);
 
@@ -136,7 +136,7 @@ public class IndexModel : PageModel
         Input = new RegisterInputModel { ReturnUrl = input.ReturnUrl };
     }
 
-    private async Task BuildModelAsync(string returnUrl)
+    private async Task BuildModelAsync(string? returnUrl)
     {
         View = new RegisterViewModel { };
 
