@@ -80,6 +80,10 @@ export default function Layout({ children }: LayoutProps) {
     newConnection.start();
 
     setConnection(newConnection);
+
+    return () => {
+      newConnection.stop();
+    };
   }, [session?.accessToken]);
 
   const isWorkingConnection =
@@ -99,7 +103,8 @@ export default function Layout({ children }: LayoutProps) {
   }, [router, session, status]);
 
   useInterval(() => {
-    if (!isWorkingConnection) return;
+    if (!(connection && connection.state === HubConnectionState.Connected))
+      return;
 
     connection?.invoke("SendHeartbeat");
   }, 5000);

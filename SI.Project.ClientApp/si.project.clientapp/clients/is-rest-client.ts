@@ -143,6 +143,50 @@ export module back_end {
         /**
          * @return Success
          */
+        apiUsers(): Promise<GetUserDto[]> {
+            let url_ = this.baseUrl + "/api/Users";
+            url_ = url_.replace(/[?&]$/, "");
+    
+            let options_: RequestInit = {
+                method: "GET",
+                headers: {
+                    "Accept": "text/plain"
+                }
+            };
+    
+            return this.http.fetch(url_, options_).then((_response: Response) => {
+                return this.processApiUsers(_response);
+            });
+        }
+    
+        protected processApiUsers(response: Response): Promise<GetUserDto[]> {
+            const status = response.status;
+            let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+            if (status === 200) {
+                return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                if (Array.isArray(resultData200)) {
+                    result200 = [] as any;
+                    for (let item of resultData200)
+                        result200!.push(GetUserDto.fromJS(item));
+                }
+                else {
+                    result200 = <any>null;
+                }
+                return result200;
+                });
+            } else if (status !== 200 && status !== 204) {
+                return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+                });
+            }
+            return Promise.resolve<GetUserDto[]>(null as any);
+        }
+    
+        /**
+         * @return Success
+         */
         apiWeatherForecast(): Promise<WeatherForecast[]> {
             let url_ = this.baseUrl + "/api/WeatherForecast";
             url_ = url_.replace(/[?&]$/, "");
@@ -301,6 +345,54 @@ export module back_end {
         lastName?: string | undefined;
         birthDate?: string | undefined;
         publicKey?: string | undefined;
+    }
+    
+    export class GetUserDto implements IGetUserDto {
+        id?: string | undefined;
+        userName?: string | undefined;
+        isOnline?: boolean;
+        lastHeartbeat?: Date;
+    
+        constructor(data?: IGetUserDto) {
+            if (data) {
+                for (var property in data) {
+                    if (data.hasOwnProperty(property))
+                        (<any>this)[property] = (<any>data)[property];
+                }
+            }
+        }
+    
+        init(_data?: any) {
+            if (_data) {
+                this.id = _data["id"];
+                this.userName = _data["userName"];
+                this.isOnline = _data["isOnline"];
+                this.lastHeartbeat = _data["lastHeartbeat"] ? new Date(_data["lastHeartbeat"].toString()) : <any>undefined;
+            }
+        }
+    
+        static fromJS(data: any): GetUserDto {
+            data = typeof data === 'object' ? data : {};
+            let result = new GetUserDto();
+            result.init(data);
+            return result;
+        }
+    
+        toJSON(data?: any) {
+            data = typeof data === 'object' ? data : {};
+            data["id"] = this.id;
+            data["userName"] = this.userName;
+            data["isOnline"] = this.isOnline;
+            data["lastHeartbeat"] = this.lastHeartbeat ? this.lastHeartbeat.toISOString() : <any>undefined;
+            return data;
+        }
+    }
+    
+    export interface IGetUserDto {
+        id?: string | undefined;
+        userName?: string | undefined;
+        isOnline?: boolean;
+        lastHeartbeat?: Date;
     }
     
     export class PostUserDetailsDto implements IPostUserDetailsDto {
@@ -500,7 +592,7 @@ export module back_end {
     }
     
     export class ApiException extends Error {
-        override message: string;
+        message: string;
         status: number;
         response: string;
         headers: { [key: string]: any; };
