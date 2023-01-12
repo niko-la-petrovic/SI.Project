@@ -27,6 +27,68 @@ export default function Users() {
       .catch((err) => {
         toast.error("Error while fetching users");
       });
+
+      // TODO konfigurisati ufw firewall
+      // TODO config wss - reverse proxy na vm
+    // TODO extract to .env
+    const user = "clientapp";
+    const password = "clientapp";
+    // const password = session.accessToken;
+    const vhost = "sni";
+    const host = "192.168.1.110";
+    const port = 5672;
+    const wsPort = 15670;
+    const queueName = "unauthorized-requests";
+
+    const tls = false;
+    const url = `${tls ? "wss" : "ws"}://${host}:${wsPort}`;
+    const amqp = new AMQPWebSocketClient(url, vhost, user, password);
+    amqp
+      .connect()
+      .then(() => {
+        console.log("connected");
+
+        amqp
+          .connect()
+          .then((client) => {
+            console.log("amqp connected");
+            client
+              .channel()
+              .then((channel) => {
+                channel
+                  .queue(queueName)
+                  .then((queue) => {
+                    queue
+                      .publish("test", { deliveryMode: 2 })
+                      .then(() => {
+                        console.log("published");
+                      })
+                      .catch((err) => {
+                        console.error(err);
+                      });
+                  })
+                  .catch((err) => {
+                    console.error(err);
+                  });
+              })
+              .catch((err) => {
+                console.error(err);
+              });
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+        // amqp.subscribe("sni", "sni", (msg) => {
+        //   console.log(msg);
+        // });
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+
+    return () => {
+      amqp.close();
+    };
   }, [session?.accessToken]);
 
   return (

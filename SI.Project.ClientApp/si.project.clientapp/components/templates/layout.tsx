@@ -78,7 +78,6 @@ export default function Layout({ children }: LayoutProps) {
     });
 
     newConnection.start();
-
     setConnection(newConnection);
 
     return () => {
@@ -86,8 +85,6 @@ export default function Layout({ children }: LayoutProps) {
     };
   }, [session?.accessToken]);
 
-  const isWorkingConnection =
-    connection && connection.state === HubConnectionState.Connected;
 
   useEffect(() => {
     if (session?.error) {
