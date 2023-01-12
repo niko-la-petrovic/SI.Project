@@ -1,4 +1,6 @@
-﻿namespace SI.Project.IdentityServer.Services.Background;
+﻿using SI.Project.IdentityServer.Models;
+
+namespace SI.Project.IdentityServer.Services.Background;
 
 public class UsersOnlineStatusBackgroundService : BackgroundService
 {
@@ -18,7 +20,7 @@ public class UsersOnlineStatusBackgroundService : BackgroundService
         {
             _logger.LogInformation("UsersOnlineStatusBackgroundService is running.");
 
-            var removedStatuses = _usersOnlineStatusService.RemoveOldStatuses(DateTime.UtcNow.AddSeconds(-30));
+            var removedStatuses = _usersOnlineStatusService.RemoveOldStatuses(DateTime.UtcNow.AddSeconds(OnlineStatusConstants.UserMissingHeartBeatInactiveSeconds));
             if (removedStatuses.Any())
                 _logger.LogInformation("Removed {0} old statuses.", removedStatuses.Count());
 

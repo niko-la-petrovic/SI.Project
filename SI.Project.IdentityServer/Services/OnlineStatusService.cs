@@ -8,7 +8,7 @@ public abstract class EntityOnlineStatusService<TEntity> : IEntityOnlineStatusSe
 {
     private readonly ConcurrentDictionary<string, TEntity> _onlineStatuses = new();
 
-    public TEntity GetOnlineStatus(string id)
+    public TEntity? GetOnlineStatus(string id)
     {
         return _onlineStatuses.TryGetValue(id, out var onlineStatus) ? onlineStatus : null;
     }
@@ -31,6 +31,16 @@ public abstract class EntityOnlineStatusService<TEntity> : IEntityOnlineStatusSe
     public IEnumerable<TEntity> GetAllOnlineStatuses()
     {
         return _onlineStatuses.Values;
+    }
+
+    public IEnumerable<TEntity> GetLastOnlineUsers(TimeSpan timeSpan, int limit)
+    {
+        // TODO cache
+        return _onlineStatuses.Values
+            .Where(os => os.IsOnline && DateTime.UtcNow.Subtract(os.LastHeartbeatTime) < timeSpan)
+            .OrderByDescending(os => os.LastHeartbeatTime)
+            .Take(limit)
+            .ToList();
     }
 
     public IEnumerable<TEntity> GetOnlineStatuses(IEnumerable<string> ids)
