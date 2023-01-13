@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@mui/material";
+import { Button, Card, CardContent } from "@mui/material";
 import { useEffect, useState } from "react";
 
 import { AMQPClient } from "@cloudamqp/amqp-client";
@@ -15,6 +15,10 @@ export default function Users() {
     []
   );
 
+  const [selectedUser, setSelectedUser] = useState<back_end.GetUserDto | null>(
+    null
+  );
+
   useEffect(() => {
     if (!session?.accessToken) return;
 
@@ -28,8 +32,8 @@ export default function Users() {
         toast.error("Error while fetching users");
       });
 
-      // TODO konfigurisati ufw firewall
-      // TODO config wss - reverse proxy na vm
+    // TODO konfigurisati ufw firewall
+    // TODO config wss - reverse proxy na vm
     // TODO extract to .env
     const user = "clientapp";
     const password = "clientapp";
@@ -105,13 +109,20 @@ export default function Users() {
   );
 }
 
-export const RenderUserCard = ({ user }: { user: back_end.GetUserDto }) => {
+export const RenderUserCard = ({
+  user,
+  onUserSelected,
+}: {
+  user: back_end.GetUserDto;
+  onUserSelected?: (user: back_end.GetUserDto) => void;
+}) => {
   return (
     <Card>
       <CardContent>
         <div className="text-2xl font-bold">{user.userName}</div>
         <div>{user.lastHeartbeat?.toString()}</div>
         <div>{user.isOnline}</div>
+        <Button>REQUEST MESSAGE</Button>
       </CardContent>
     </Card>
   );

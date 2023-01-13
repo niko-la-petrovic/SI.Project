@@ -7,16 +7,14 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using SI.Project.IdentityServer.Data;
 using SI.Project.IdentityServer.Models;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using SI.Project.IdentityServer.Hubs;
 using SI.Project.IdentityServer.Authorization;
-using System.IdentityModel.Tokens.Jwt;
-using IdentityModel.OidcClient;
 using Hellang.Middleware.ProblemDetails;
 using SI.Project.IdentityServer.Services.Identity;
 using Microsoft.AspNetCore.HttpOverrides;
+using EasyNetQ;
 
 namespace SI.Project.IdentityServer.Extensions;
 
@@ -27,6 +25,11 @@ internal static class HostingExtensions
         var services = builder.Services;
         var configuration = builder.Configuration;
         var env = builder.Environment;
+
+        services.RegisterEasyNetQ(configuration.GetConnectionString("RMQUnauhtorizedRequestsConnection"), register =>
+        {
+            register.EnableSystemTextJson();
+        });
 
         services.AddCors(options =>
         {

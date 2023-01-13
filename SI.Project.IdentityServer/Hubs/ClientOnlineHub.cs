@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using SI.Project.IdentityServer.Extensions;
 using SI.Project.IdentityServer.Services;
 using System.Security.Claims;
 
@@ -17,6 +18,7 @@ public class ClientOnlineHub : Hub
         _logger = logger;
     }
 
+    // TODO remove
     public async Task SendMessage(string user, string message)
     {
         await Clients.All.SendAsync("ReceiveMessage", user, message);
@@ -26,7 +28,7 @@ public class ClientOnlineHub : Hub
     {
         var context = Context;
         var user = context.User;
-        var userId = user.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        var userId = user.GetId();
 
         _logger.LogInformation("Heartbeat from user {0}", userId);
 
@@ -36,4 +38,6 @@ public class ClientOnlineHub : Hub
                 DateTime.UtcNow,
                 true));
     }
+
+    //public async Task SendMessageRequest()
 }
