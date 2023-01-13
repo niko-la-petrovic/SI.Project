@@ -7,5 +7,6 @@ namespace SI.Project.IdentityServer.Services.Users
         Task<IEnumerable<GetUserDto>> GetNewestOnlineUsersAsync();
         Task<GetUserDto?> GetOnlineUserAsync(string userId);
         Task<string?> GetUserPublicKey(string userId);
+        Task<IEnumerable<GetUserDto>> SearchOnlineUsersAsync(string? usernameQuery);
     }
 }

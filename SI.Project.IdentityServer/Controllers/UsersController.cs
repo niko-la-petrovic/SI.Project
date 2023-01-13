@@ -16,4 +16,13 @@ public class UsersController : UserAuthorizedController
         var users = await usersService.GetNewestOnlineUsersAsync();
         return Ok(users);
     }
+
+    [HttpGet("search")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<GetUserDto>))]
+    public async Task<IActionResult> GetSearchByUsername(
+        [FromQuery] string? usernameQuery, [FromServices] IUsersService usersService)
+    {
+        var result = await usersService.SearchOnlineUsersAsync(usernameQuery);
+        return Ok(result);
+    }
 }

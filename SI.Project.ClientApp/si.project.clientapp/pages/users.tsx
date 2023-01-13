@@ -1,4 +1,4 @@
-import { Button, Card, CardContent } from "@mui/material";
+import { Button, Card, CardContent, TextField } from "@mui/material";
 import {
   SignalRContext,
   SignalRHandlers,
@@ -14,6 +14,7 @@ import { back_end } from "../clients/is-rest-client";
 import { getIsRestClient } from "../services/is-rest-client";
 import { reqPubKeyToastId } from "../services/toastIds";
 import { toast } from "react-toastify";
+import { useDebounce } from "usehooks-ts";
 import { useSession } from "next-auth/react";
 
 export default function Users() {
@@ -22,7 +23,8 @@ export default function Users() {
   const [lastOnlineUsers, setLastOnlineUsers] = useState<back_end.GetUserDto[]>(
     []
   );
-
+  const [searchUserQuery, setSearchUserQuery] = useState<string>("");
+  const searchUserQueryDebounced = useDebounce(searchUserQuery, 500);
   const [selectedUser, setSelectedUser] = useState<back_end.GetUserDto | null>(
     null
   );
@@ -105,11 +107,46 @@ export default function Users() {
     };
   }, [session?.accessToken]);
 
+  useEffect(() => {
+    if (!session?.accessToken) return;
+    if (searchUserQueryDebounced.length === 0) {
+      const client = getIsRestClient(session.accessToken);
+      client
+        .apiUsers()
+        .then((res) => {
+          setLastOnlineUsers(res);
+        })
+        .catch((err) => {
+          toast.error("Error while fetching users");
+        });
+      return;
+    }
+
+    const client = getIsRestClient(session.accessToken);
+    client
+      .apiUsersSearch(searchUserQueryDebounced)
+      .then((res) => {
+        res && setLastOnlineUsers(res);
+      })
+      .catch((err) => {
+        toast.error("Error while fetching users");
+      });
+  }, [searchUserQueryDebounced, session?.accessToken]);
+
   // TODO cleanup console debug
   return (
     <>
       <div className="flex flex-col gap-4 p-8">
         <h1>Users</h1>
+        <div className="flex flex-col gap-4 rounded w-full p-4 bg-white">
+          <span className="font-bold">Search</span>
+          <TextField
+            fullWidth
+            label="Username"
+            value={searchUserQuery}
+            onChange={(e) => setSearchUserQuery(e.target.value)}
+          />
+        </div>
         <div className="flex flex-col gap-4">
           {lastOnlineUsers.map((user) => (
             <RenderUserCard

@@ -33,7 +33,12 @@ export default function MessagingOverlay() {
             <div key={u.id} className="w-64 bg-white rounded-t-lg">
               <Accordion>
                 <AccordionSummary expandIcon={<MdExpandMore />}>
-                  <span className="font-bold text-lg">{u.userName}</span>
+                  <div className="flex w-full items-center justify-between pr-4">
+                    <span className="font-bold text-lg">{u.userName}</span>
+                    <span className="text-sm">
+                      {u.publicKeyThumbprintHex?.substring(0, 10)}...
+                    </span>
+                  </div>
                 </AccordionSummary>
                 <AccordionDetails className="px-0">
                   <div className="flex flex-col gap-4">
@@ -56,10 +61,22 @@ export default function MessagingOverlay() {
                     <div className="w-full px-4 gap-4 flex items-center justify-between">
                       <TextField
                         className="p-0"
-                        label="Message"
+                        placeholder="Message"
                         variant="outlined"
+                        inputProps={{
+                          className: "p-2",
+                        }}
                       />
-                      <Button variant="outlined">
+                      <Button
+                        variant="outlined"
+                        className="p-2"
+                        onClick={() => {
+                          connection?.invoke("SendMessage", {
+                            userId: u.id,
+                            text: "Hello",
+                          });
+                        }}
+                      >
                         <MdSend className="text-lg" />
                       </Button>
                     </div>

@@ -7,6 +7,7 @@ namespace SI.Project.IdentityServer.Services.Users;
 
 public class UsersService : IUsersService
 {
+    private const int UserPageLimit = 10;
     private readonly ApplicationDbContext _dbContext;
     private readonly IUsersOnlineStatusService _usersOnlineStatusService;
 
@@ -21,7 +22,7 @@ public class UsersService : IUsersService
     public async Task<IEnumerable<GetUserDto>> GetNewestOnlineUsersAsync()
     {
         var lastOnlineUsers = _usersOnlineStatusService
-            .GetLastOnlineUsers(TimeSpan.FromSeconds(OnlineStatusConstants.LastOnlineUsersSeconds), 10)
+            .GetLastOnlineUsers(TimeSpan.FromSeconds(OnlineStatusConstants.LastOnlineUsersSeconds), UserPageLimit)
             .ToList();
 
         var userIds = lastOnlineUsers.Select(x => x.Id);
@@ -46,6 +47,32 @@ public class UsersService : IUsersService
             .ToList();
 
         return usersWithTime;
+    }
+
+    public async Task<IEnumerable<GetUserDto>> SearchOnlineUsersAsync(string? usernameQuery)
+    {
+        var users = await _dbContext.Users.AsNoTracking()
+            .Where(u => EF.Functions.Like(u.NormalizedUserName, $"{usernameQuery.ToUpper()}%"))
+            .Take(UserPageLimit)
+            .ToListAsync();
+
+        var userIds = users.Select(u => u.Id);
+
+        var onlineStatuses = _usersOnlineStatusService.GetOnlineStatuses(userIds, true);
+
+        var filteredUsers = onlineStatuses.Join(users, uos => uos.Id, user => user.Id, (uos, u) => new { UserOnlineStatus = uos, User = u })
+            .OrderByDescending(g => g.User.UserName)
+            .Take(UserPageLimit)
+            .Select(g => new GetUserDto
+            {
+                Id = g.User.Id,
+                IsOnline = g.UserOnlineStatus.IsOnline,
+                UserName = g.User.UserName,
+                LastHeartbeat = g.UserOnlineStatus.LastHeartbeatTime
+            })
+            .ToList();
+
+        return filteredUsers;
     }
 
     public async Task<GetUserDto?> GetOnlineUserAsync(string userId)
