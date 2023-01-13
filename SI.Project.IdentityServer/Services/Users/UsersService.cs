@@ -47,4 +47,35 @@ public class UsersService : IUsersService
 
         return usersWithTime;
     }
+
+    public async Task<GetUserDto?> GetOnlineUserAsync(string userId)
+    {
+        var user = await _dbContext.Users
+            .AsNoTracking()
+            .FirstAsync(u => u.Id == userId);
+
+        // TODO exception handling
+        var onlineStatus = _usersOnlineStatusService.GetOnlineStatus(userId);
+        if (onlineStatus is null)
+        {
+            return null;
+        }
+
+        return new GetUserDto
+        {
+            Id = user.Id,
+            UserName = user.UserName,
+            IsOnline = onlineStatus?.IsOnline ?? false,
+            LastHeartbeat = onlineStatus?.LastHeartbeatTime ?? DateTime.MinValue
+        };
+    }
+
+    public async Task<string?> GetUserPublicKey(string userId)
+    {
+        var userDetails = await _dbContext.UserDetails
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.UserId == userId);
+
+        return userDetails?.PublicKey;
+    }
 }

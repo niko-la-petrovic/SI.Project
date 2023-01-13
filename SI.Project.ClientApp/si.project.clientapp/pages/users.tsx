@@ -1,10 +1,14 @@
 import { Button, Card, CardContent } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import { AMQPClient } from "@cloudamqp/amqp-client";
 import { AMQPWebSocketClient } from "@cloudamqp/amqp-client";
+import { HubConnectionState } from "@microsoft/signalr";
+import { PostUserPublicKeyRequestDto } from "../types/dtos";
+import { SignalRContext } from "../components/templates/layout";
 import { back_end } from "../clients/is-rest-client";
 import { getIsRestClient } from "../services/is-rest-client";
+import { reqPubKeyToastId } from "../services/toastIds";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
 
@@ -18,6 +22,8 @@ export default function Users() {
   const [selectedUser, setSelectedUser] = useState<back_end.GetUserDto | null>(
     null
   );
+
+  const { connection } = useContext(SignalRContext);
 
   useEffect(() => {
     if (!session?.accessToken) return;
@@ -46,62 +52,83 @@ export default function Users() {
 
     const tls = false;
     const url = `${tls ? "wss" : "ws"}://${host}:${wsPort}`;
-    const amqp = new AMQPWebSocketClient(url, vhost, user, password);
-    amqp
-      .connect()
-      .then(() => {
-        console.log("connected");
+    // const amqp = new AMQPWebSocketClient(url, vhost, user, password);
+    // amqp
+    //   .connect()
+    //   .then(() => {
+    //     console.log("connected");
 
-        amqp
-          .connect()
-          .then((client) => {
-            console.log("amqp connected");
-            client
-              .channel()
-              .then((channel) => {
-                channel
-                  .queue(queueName)
-                  .then((queue) => {
-                    queue
-                      .publish("test", { deliveryMode: 2 })
-                      .then(() => {
-                        console.log("published");
-                      })
-                      .catch((err) => {
-                        console.error(err);
-                      });
-                  })
-                  .catch((err) => {
-                    console.error(err);
-                  });
-              })
-              .catch((err) => {
-                console.error(err);
-              });
-          })
-          .catch((err) => {
-            console.error(err);
-          });
-        // amqp.subscribe("sni", "sni", (msg) => {
-        //   console.log(msg);
-        // });
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    //     amqp
+    //       .connect()
+    //       .then((client) => {
+    //         console.log("amqp connected");
+    //         client
+    //           .channel()
+    //           .then((channel) => {
+    //             channel
+    //               .queue(queueName)
+    //               .then((queue) => {
+    //                 queue
+    //                   .publish("test", { deliveryMode: 2 })
+    //                   .then(() => {
+    //                     console.log("published");
+    //                   })
+    //                   .catch((err) => {
+    //                     console.error(err);
+    //                   });
+    //               })
+    //               .catch((err) => {
+    //                 console.error(err);
+    //               });
+    //           })
+    //           .catch((err) => {
+    //             console.error(err);
+    //           });
+    //       })
+    //       .catch((err) => {
+    //         console.error(err);
+    //       });
+    //     // amqp.subscribe("sni", "sni", (msg) => {
+    //     //   console.log(msg);
+    //     // });
+    //   })
+    //   .catch((err) => {
+    //     console.error(err);
+    //   });
 
     return () => {
-      amqp.close();
+      // amqp.close();
     };
   }, [session?.accessToken]);
 
+  // TODO cleanup console debug
   return (
     <>
       <div className="flex flex-col gap-4 p-8">
         <h1>Users</h1>
         <div className="flex flex-col gap-4">
           {lastOnlineUsers.map((user) => (
-            <RenderUserCard key={user.id} user={user} />
+            <RenderUserCard
+              key={user.id}
+              user={user}
+              onUserSelected={(u) => {
+                console.debug(u, connection);
+                connection &&
+                  connection.state === HubConnectionState.Connected &&
+                  connection?.invoke("SendMessageRequest", {
+                    requestedUserId: u.id,
+                  } as PostUserPublicKeyRequestDto);
+                toast.info(
+                  <div>
+                    Awaiting public key request result for user <span className="font-bold">{user.userName}</span>
+                  </div>,
+                  {
+                    autoClose: false,
+                    toastId: reqPubKeyToastId(u.id || ""),
+                  }
+                );
+              }}
+            />
           ))}
         </div>
       </div>
@@ -122,7 +149,9 @@ export const RenderUserCard = ({
         <div className="text-2xl font-bold">{user.userName}</div>
         <div>{user.lastHeartbeat?.toString()}</div>
         <div>{user.isOnline}</div>
-        <Button>REQUEST MESSAGE</Button>
+        <Button onClick={() => onUserSelected && onUserSelected(user)}>
+          REQUEST MESSAGE
+        </Button>
       </CardContent>
     </Card>
   );

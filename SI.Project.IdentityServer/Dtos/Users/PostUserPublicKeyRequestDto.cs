@@ -2,5 +2,5 @@
 
 public class PostUserPublicKeyRequestDto
 {
-    public string UserId { get; set; }
+    public string RequestedUserId { get; set; }
 }
