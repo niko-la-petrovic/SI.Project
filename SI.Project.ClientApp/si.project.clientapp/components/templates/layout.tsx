@@ -2,32 +2,47 @@ import {
   CertStoreActionType,
   CertStoreContext,
   CertStoreLocalStorageKey,
-  CertStoreState,
   certStoreInitialState,
   certStoreReducer,
 } from "../../store/cert-store";
 import {
-  HubConnection,
-  HubConnectionBuilder,
-  HubConnectionState,
-} from "@microsoft/signalr";
+  MessageStoreActionType,
+  MessageStoreContext,
+  messageStoreInitialState,
+  messageStoreReducer,
+} from "../../store/message-store";
 import { createContext, useEffect, useReducer, useState } from "react";
 import {
   receivedReqPubKeyToastId,
   reqPubKeyToastId,
 } from "../../services/toastIds";
 import { signIn, useSession } from "next-auth/react";
+import signalR, {
+  HubConnection,
+  HubConnectionBuilder,
+  HubConnectionState,
+} from "@microsoft/signalr";
 
 import { Button } from "@mui/material";
 import Footer from "../organisms/footer";
 import Head from "next/head";
 import Header from "../organisms/header";
+import MessagingOverlay from "../organisms/messaging-overlay";
 import { PostUserPublicKeyRequestMessageDto } from "../../types/dtos";
 import forge from "node-forge";
 import { getIsApiUrl } from "../../services/auth";
 import { toast } from "react-toastify";
 import { useInterval } from "usehooks-ts";
 import { useRouter } from "next/router";
+
+export enum SignalRHandlers {
+  ReceiveMessage = "ReceiveMessage",
+  PrivateErrorMessage = "PrivateErrorMessage",
+  PublicKeyRequest = "PublicKeyRequest",
+  PublicKeyRequestDenied = "PublicKeyRequestDenied",
+  PublicKeyRequestAccepted = "PublicKeyRequestAccepted",
+  SendMessageRequest = "SendMessageRequest",
+}
 
 export interface ComponentProps {
   children: React.ReactNode;
@@ -45,8 +60,13 @@ export default function Layout({ children }: LayoutProps) {
     certStoreReducer,
     certStoreInitialState
   );
+  const [messageStore, messageStoreDispatch] = useReducer(
+    messageStoreReducer,
+    messageStoreInitialState
+  );
   const [connection, setConnection] = useState<HubConnection | null>(null);
-
+  // TODO remove local storage
+  // TODO add toast if certStore is empty - force user to load keys
   const [certStoreLoaded, setCertStoreLoaded] = useState<boolean>(false);
   useEffect(() => {
     const storedCertStoreJson = localStorage.getItem(CertStoreLocalStorageKey);
@@ -71,8 +91,21 @@ export default function Layout({ children }: LayoutProps) {
       .withUrl(`${getIsApiUrl()}/hubs/client-online`, {
         accessTokenFactory: () => accessToken,
       })
+      .configureLogging(2)
       .withAutomaticReconnect() // TODO reconnect logic
       .build();
+
+    newConnection.start().then((c) => {
+      setConnection(newConnection);
+    });
+
+    return () => {
+      newConnection.stop();
+    };
+  }, [session?.accessToken]);
+
+  useEffect(() => {
+    if (!connection) return;
 
     const handlePublicKeyRequest = (
       request: PostUserPublicKeyRequestMessageDto
@@ -83,7 +116,7 @@ export default function Layout({ children }: LayoutProps) {
       const pubKeyFingerPrint = forge.pki.getPublicKeyFingerprint(pubKey);
       const pubKeyFingerPrintHex = pubKeyFingerPrint.toHex();
       const toastId = receivedReqPubKeyToastId(pubKeyFingerPrintHex);
-      const toasted = toast.info(
+      toast.info(
         <div className="flex flex-col gap-2">
           <div>
             User <span className="font-bold">{request.requestor.userName}</span>{" "}
@@ -96,7 +129,22 @@ export default function Layout({ children }: LayoutProps) {
               color="success"
               onClick={() => {
                 toast.dismiss(toastId);
-                newConnection.invoke("AcceptPublicKeyRequest", request);
+                connection.invoke("AcceptPublicKeyRequest", request);
+                const publicKey = forge.pki.publicKeyFromPem(
+                  request.requestorPublicKey
+                );
+                const publicKeyFingerprint =
+                  forge.pki.getPublicKeyFingerprint(publicKey);
+                messageStoreDispatch({
+                  type: MessageStoreActionType.ADD_USER,
+                  user: {
+                    id: request.requestor.id,
+                    userName: request.requestor.userName,
+                    publicKey: publicKey,
+                    chatOpened: false,
+                    publicKeyThumbprintHex: publicKeyFingerprint.toHex(),
+                  },
+                });
               }}
             >
               Accept
@@ -108,7 +156,7 @@ export default function Layout({ children }: LayoutProps) {
                 toast.dismiss(toastId);
                 // TODO closure problem
                 // TODO add dependency on connection - return from useEffect if ...
-                newConnection.invoke("DenyPublicKeyRequest", request);
+                connection.invoke("DenyPublicKeyRequest", request);
               }}
             >
               Deny
@@ -154,34 +202,43 @@ export default function Layout({ children }: LayoutProps) {
           autoClose: 5000,
         }
       );
+      messageStoreDispatch({
+        type: MessageStoreActionType.ADD_USER,
+        user: {
+          id: userId,
+          userName: userName,
+          publicKey: publicKey,
+          publicKeyThumbprintHex: publicKeyThumbprintHex,
+          chatOpened: false,
+        },
+      });
     };
 
-    newConnection.on("ReceiveMessage", (user, message) => {
+    Object.keys(SignalRHandlers).forEach((handler) => {
+      connection.off(handler);
+    });
+    connection.on(SignalRHandlers.ReceiveMessage, (user, message) => {
       toast(`${user}: ${message}`);
     });
-    newConnection.on("PrivateErrorMessage", (message) => {
+    connection.on(SignalRHandlers.PrivateErrorMessage, (message) => {
       toast.error(message);
     });
-    newConnection.on("PublicKeyRequest", handlePublicKeyRequest);
-    newConnection.on("PublicKeyRequestDenied", handlePublicKeyRequestDenied);
-    newConnection.on(
-      "PublicKeyRequestAccepted",
+    connection.on(SignalRHandlers.PublicKeyRequest, handlePublicKeyRequest);
+    connection.on(
+      SignalRHandlers.PublicKeyRequestDenied,
+      handlePublicKeyRequestDenied
+    );
+    connection.on(
+      SignalRHandlers.PublicKeyRequestAccepted,
       handlePublicKeyRequestAccepted
     );
-    newConnection.onclose(() => {
+    connection.onclose(() => {
       toast("Connection closed");
     });
-    newConnection.onreconnecting(() => {
+    connection.onreconnecting(() => {
       toast("Connection reconnecting");
     });
-
-    newConnection.start();
-    setConnection(newConnection);
-
-    return () => {
-      newConnection.stop();
-    };
-  }, [session?.accessToken]);
+  }, [connection]);
 
   useEffect(() => {
     if (session?.error) {
@@ -219,21 +276,26 @@ export default function Layout({ children }: LayoutProps) {
         <CertStoreContext.Provider
           value={{ state: certStore, dispatch: certStoreDispatch }}
         >
-          <main className={`flex flex-col min-h-screen justify-between`}>
-            <Header drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen} />
-            {children}
-            {/* TODO remove */}
-            {/* <button
-              onClick={() => {
-                if (!isWorkingConnection) return;
-                connection?.invoke("SendMessage", "user", "message");
-                connection?.invoke("SendHeartbeat");
-              }}
-            >
-              Send Message
-            </button> */}
-            <Footer />
-          </main>
+          <MessageStoreContext.Provider
+            value={{ state: messageStore, dispatch: messageStoreDispatch }}
+          >
+            <main className={`flex flex-col min-h-screen justify-between`}>
+              <Header drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen} />
+              {children}
+              <MessagingOverlay />
+              {/* TODO remove */}
+              {/* <button
+                onClick={() => {
+                  if (!isWorkingConnection) return;
+                  connection?.invoke("SendMessage", "user", "message");
+                  connection?.invoke("SendHeartbeat");
+                }}
+              >
+                Send Message
+              </button> */}
+              <Footer />
+            </main>
+          </MessageStoreContext.Provider>
         </CertStoreContext.Provider>
       </SignalRContext.Provider>
     </div>

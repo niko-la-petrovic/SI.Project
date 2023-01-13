@@ -1,11 +1,15 @@
 import { Button, Card, CardContent } from "@mui/material";
+import {
+  SignalRContext,
+  SignalRHandlers,
+} from "../components/templates/layout";
 import { useContext, useEffect, useState } from "react";
 
 import { AMQPClient } from "@cloudamqp/amqp-client";
 import { AMQPWebSocketClient } from "@cloudamqp/amqp-client";
+import { CertStoreContext } from "../store/cert-store";
 import { HubConnectionState } from "@microsoft/signalr";
 import { PostUserPublicKeyRequestDto } from "../types/dtos";
-import { SignalRContext } from "../components/templates/layout";
 import { back_end } from "../clients/is-rest-client";
 import { getIsRestClient } from "../services/is-rest-client";
 import { reqPubKeyToastId } from "../services/toastIds";
@@ -115,12 +119,13 @@ export default function Users() {
                 console.debug(u, connection);
                 connection &&
                   connection.state === HubConnectionState.Connected &&
-                  connection?.invoke("SendMessageRequest", {
+                  connection?.invoke(SignalRHandlers.SendMessageRequest, {
                     requestedUserId: u.id,
                   } as PostUserPublicKeyRequestDto);
                 toast.info(
                   <div>
-                    Awaiting public key request result for user <span className="font-bold">{user.userName}</span>
+                    Awaiting public key request result for user{" "}
+                    <span className="font-bold">{user.userName}</span>
                   </div>,
                   {
                     autoClose: false,
@@ -131,6 +136,7 @@ export default function Users() {
             />
           ))}
         </div>
+        <div className="h-[920px]"></div>
       </div>
     </>
   );
@@ -143,13 +149,17 @@ export const RenderUserCard = ({
   user: back_end.GetUserDto;
   onUserSelected?: (user: back_end.GetUserDto) => void;
 }) => {
+  const { state: certStoreState, dispatch } = useContext(CertStoreContext);
   return (
     <Card>
       <CardContent>
         <div className="text-2xl font-bold">{user.userName}</div>
         <div>{user.lastHeartbeat?.toString()}</div>
         <div>{user.isOnline}</div>
-        <Button onClick={() => onUserSelected && onUserSelected(user)}>
+        <Button
+          onClick={() => onUserSelected && onUserSelected(user)}
+          disabled={!certStoreState.publicKey}
+        >
           REQUEST MESSAGE
         </Button>
       </CardContent>
