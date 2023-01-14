@@ -20,6 +20,7 @@ import { SignalRContext, SignalRHandlers } from "../templates/layout";
 import { CertStoreContext } from "../../store/cert-store";
 import _ from "lodash";
 import forge from "node-forge";
+import { format } from "date-fns";
 import { useContext } from "react";
 import { useSession } from "next-auth/react";
 import { v4 as uuidv4 } from "uuid";
@@ -119,6 +120,7 @@ export default function MessagingOverlay() {
             messageState.userMessagesMap.get(u.id || "") || [];
           const userMessageInput =
             messageState.userMessageInputsMap.get(u.id || "") || "";
+          // TODO extract to own component. scroll to bottom on messages change from given user
           return (
             <div key={u.id} className="w-64 bg-white rounded-t-lg">
               <Accordion>
@@ -138,11 +140,22 @@ export default function MessagingOverlay() {
                         You have no messages with this user
                       </div>
                     ) : (
-                      <List disablePadding>
-                        {userMessages.map((message) => (
+                      <List disablePadding className="max-h-64 overflow-auto">
+                        {userMessages.map((message, i) => (
                           <ListItem key={message.id} disablePadding>
                             <ListItemButton>
-                              <span>{message.text}</span>
+                              <div className="flex w-full gap-2 items-start justify-between">
+                                <div className="flex-grow">
+                                  <span className="break-all">
+                                    {message.text}
+                                  </span>
+                                </div>
+                                {i % 5 === 0 && (
+                                  <span className="text-sm text-gray-400 whitespace-nowrap">
+                                    {format(message.timestamp, "HH:mm dd.MM")}
+                                  </span>
+                                )}
+                              </div>
                             </ListItemButton>
                           </ListItem>
                         ))}
