@@ -52,10 +52,8 @@ export default function MessagingOverlay() {
     if (!senderPrivateKey) return;
 
     const messagePlaintextLength = preparedMessageText.length;
-    // TODO split
-    // const utfEncode = new TextEncoder();
-    // const messageBytes = utfEncode.encode(preparedMessageText);
-    // console.log(messageBytes);
+
+    // TODO add steganography
 
     const messageId = uuidv4();
     const messagePartsCount = 3; // Math.random()*() +3
@@ -65,15 +63,19 @@ export default function MessagingOverlay() {
       messagePartIndex < messagePartsCount;
       messagePartIndex++
     ) {
-      // TODO for each part
+      const partSize = Math.ceil(messagePlaintextLength / messagePartsCount);
+
       const messagePartText = preparedMessageText.substring(
-        messagePartIndex * messagePartsCount,
-        (messagePartIndex + 1) * messagePartsCount
+        messagePartIndex * partSize,
+        (messagePartIndex + 1) * partSize
       );
+
+      console.log(JSON.stringify(messagePartText));
 
       const encrypted = receiverPublicKey.encrypt(messagePartText);
       console.log(encrypted);
       const messageDigest = forge.sha256.create();
+      const hashAlgorithm = messageDigest.algorithm;
       messageDigest.update(encrypted);
       const hash = messageDigest.digest();
       console.log(hash, hash.bytes(), hash.toHex());
@@ -98,6 +100,7 @@ export default function MessagingOverlay() {
         partsCount: messagePartsCount,
         encrypted: encrypted,
         hash: hash.bytes(),
+        hashAlgorithm: hashAlgorithm,
         signature: signedMessageDigest,
       };
       messageParts.push(messagePart);

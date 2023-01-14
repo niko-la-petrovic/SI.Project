@@ -148,6 +148,7 @@ export default function Layout({ children }: LayoutProps) {
                     publicKeyThumbprintHex: publicKeyFingerprint.toHex(),
                   },
                 });
+                console.log("added user to message store");
               }}
             >
               Accept
@@ -219,7 +220,48 @@ export default function Layout({ children }: LayoutProps) {
 
     const handleDirectReceiveMessagePart = (messagePart: IMessagePart) => {
       console.debug(messagePart);
-      
+
+      console.debug(messageStore.users);
+      const senderPublicKey = messageStore.users.find(
+        (u) => u.id === messagePart.senderId
+      )?.publicKey;
+
+      if (!senderPublicKey) {
+        toast.error(
+          `Received message part from user ${messagePart.senderId} but their public key is not known`
+        );
+        return;
+      }
+
+      const hashAlgorithm = messagePart.hashAlgorithm as forge.md.Algorithm;
+      if (!hashAlgorithm) {
+        toast.error(
+          `Received message part with unknown hash algorithm ${messagePart.hashAlgorithm}`
+        );
+        return;
+      }
+
+      const messageDigest = forge.md.algorithms[hashAlgorithm].create();
+      messageDigest.update(messagePart.encrypted);
+      const hash = messageDigest.digest().bytes();
+      const verifiedSignature = senderPublicKey.verify(
+        hash,
+        messagePart.signature
+      );
+      if (!verifiedSignature) {
+        toast.error(`Received message part with invalid signature`);
+        return;
+      }
+
+      const messagePartDecrypted = certStore.privateKey?.decrypt(
+        messagePart.encrypted
+      );
+      if (!messagePartDecrypted) {
+        toast.error(`Failed to decrypt message part`);
+        return;
+      }
+
+      console.log(JSON.stringify(messagePartDecrypted));
       // messageStoreDispatch({
       //   type: MessageStoreActionType.ADD_MESSAGE_PART,
       //   messagePart: messagePartDecrypted,
@@ -254,7 +296,7 @@ export default function Layout({ children }: LayoutProps) {
     connection.onreconnecting(() => {
       toast("Connection reconnecting");
     });
-  }, [connection]);
+  }, [certStore.privateKey, connection, messageStore.users]);
 
   useEffect(() => {
     if (session?.error) {

@@ -23,6 +23,7 @@ export type IMessagePart = {
   partIndex: number;
   partsCount: number;
   encrypted: string;
+  hashAlgorithm: string;
   hash: string;
   signature: string;
 };
