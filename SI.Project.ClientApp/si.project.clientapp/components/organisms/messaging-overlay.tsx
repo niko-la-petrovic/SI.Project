@@ -18,6 +18,7 @@ import { MdExpandMore, MdSend } from "react-icons/md";
 import { SignalRContext, SignalRHandlers } from "../templates/layout";
 
 import { CertStoreContext } from "../../store/cert-store";
+import _ from "lodash";
 import forge from "node-forge";
 import { useContext } from "react";
 import { useSession } from "next-auth/react";
@@ -57,19 +58,20 @@ export default function MessagingOverlay() {
 
     const messageId = uuidv4();
     const messagePartsCount = 3; // Math.random()*() +3
-    const messageParts = [];
+    const messagePartSize = Math.floor(
+      messagePlaintextLength / messagePartsCount
+    );
+    const messageParts = _.chunk(
+      Array.from(preparedMessageText),
+      messagePartSize
+    );
+    console.log(messageParts);
     for (
       let messagePartIndex = 0;
-      messagePartIndex < messagePartsCount;
+      messagePartIndex < messageParts.length;
       messagePartIndex++
     ) {
-      const partSize = Math.ceil(messagePlaintextLength / messagePartsCount);
-
-      const messagePartText = preparedMessageText.substring(
-        messagePartIndex * partSize,
-        (messagePartIndex + 1) * partSize
-      );
-
+      const messagePartText = messageParts[messagePartIndex].join("");
       console.log(JSON.stringify(messagePartText));
 
       const encrypted = receiverPublicKey.encrypt(messagePartText);
@@ -103,11 +105,9 @@ export default function MessagingOverlay() {
         hashAlgorithm: hashAlgorithm,
         signature: signedMessageDigest,
       };
-      messageParts.push(messagePart);
 
       connection?.invoke(SignalRHandlers.DirectSendMessagePart, messagePart);
     }
-    console.log(messageParts);
   };
 
   return (
