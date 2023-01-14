@@ -14,13 +14,14 @@ import {
   MessageStoreActionType,
   MessageStoreContext,
 } from "../../store/message-store";
-import { MdExpandMore, MdSend } from "react-icons/md";
+import { MdArrowLeft, MdExpandMore, MdSend } from "react-icons/md";
 import { SignalRContext, SignalRHandlers } from "../templates/layout";
 
 import { CertStoreContext } from "../../store/cert-store";
 import _ from "lodash";
 import forge from "node-forge";
 import { format } from "date-fns";
+import { toast } from "react-toastify";
 import { useContext } from "react";
 import { useSession } from "next-auth/react";
 import { v4 as uuidv4 } from "uuid";
@@ -47,26 +48,42 @@ export default function MessagingOverlay() {
     const receiverPublicKey = messageState.users.find(
       (u) => u.id === userId
     )?.publicKey;
-    if (!receiverPublicKey) return;
+    if (!receiverPublicKey) {
+      toast.error("Recipient's public key not found");
+      return;
+    }
     console.log(receiverPublicKey);
 
     const senderPrivateKey = certStoreState.privateKey;
-    if (!senderPrivateKey) return;
-
-    const messagePlaintextLength = preparedMessageText.length;
-
-    // TODO add steganography
+    if (!senderPrivateKey) {
+      toast.error("You haven't configured a private key");
+      return;
+    }
 
     const messageId = uuidv4();
-    const messagePartsCount = 3; // Math.random()*() +3
-    const messagePartSize = Math.floor(
-      messagePlaintextLength / messagePartsCount
-    );
+    messageDispatch({
+      type: MessageStoreActionType.ADD_MY_MESSAGE,
+      message: {
+        id: uuidv4(),
+        senderId: session?.user?.id || "",
+        fromMe: true,
+        text: preparedMessageText,
+        timestamp: new Date(),
+      },
+      receiverId: userId || "",
+    });
+
+    // TODO add steganography
+    const messagePlaintextLength = preparedMessageText.length;
+    const tryDivideInto = 3; // Math.random()*() +3
+    const messagePartSize = Math.floor(messagePlaintextLength / tryDivideInto);
     const messageParts = _.chunk(
       Array.from(preparedMessageText),
       messagePartSize
     );
+    const messagePartsCount = messageParts.length;
     console.log(messageParts);
+
     for (
       let messagePartIndex = 0;
       messagePartIndex < messageParts.length;
@@ -142,22 +159,30 @@ export default function MessagingOverlay() {
                     ) : (
                       <List disablePadding className="max-h-64 overflow-auto">
                         {userMessages.map((message, i) => (
-                          <ListItem key={message.id} disablePadding>
-                            <ListItemButton>
-                              <div className="flex w-full gap-2 items-start justify-between">
-                                <div className="flex-grow">
-                                  <span className="break-all">
-                                    {message.text}
-                                  </span>
-                                </div>
-                                {i % 5 === 0 && (
-                                  <span className="text-sm text-gray-400 whitespace-nowrap">
-                                    {format(message.timestamp, "HH:mm dd.MM")}
-                                  </span>
-                                )}
+                          <div key={message.id}>
+                            {i % 5 === 0 && (
+                              <div className="flex justify-center">
+                                <span className="text-sm text-gray-400 whitespace-nowrap">
+                                  {format(message.timestamp, "HH:mm dd.MM")}
+                                </span>
                               </div>
-                            </ListItemButton>
-                          </ListItem>
+                            )}
+                            <ListItem disablePadding>
+                              <ListItemButton>
+                                <div className="flex w-full gap-2 items-start justify-between">
+                                  <div
+                                    className={`flex-grow flex ${
+                                      message.fromMe ? "justify-end" : ""
+                                    }`}
+                                  >
+                                    <span className={`break-all`}>
+                                      {message.text}
+                                    </span>
+                                  </div>
+                                </div>
+                              </ListItemButton>
+                            </ListItem>
+                          </div>
                         ))}
                       </List>
                     )}

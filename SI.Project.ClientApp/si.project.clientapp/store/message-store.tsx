@@ -14,6 +14,7 @@ export type IMessage = {
   text: string;
   senderId: string;
   timestamp: Date;
+  fromMe: boolean;
 };
 
 export type IMessagePart = {
@@ -39,6 +40,7 @@ export enum MessageStoreActionType {
   OPEN_CHAT = "OPEN_CHAT",
   SET_MESSAGE_INPUT = "SET_MESSAGE_INPUT",
   ADD_MESSAGE_PART = "ADD_MESSAGE_PART",
+  ADD_MY_MESSAGE = "ADD_MY_MESSAGE",
 }
 
 export type MessageStoreAction =
@@ -67,6 +69,11 @@ export type MessageStoreAction =
   | {
       type: MessageStoreActionType.ADD_MESSAGE_PART;
       messagePart: IDecrtypedMessagePart;
+    }
+  | {
+      type: MessageStoreActionType.ADD_MY_MESSAGE;
+      message: IMessage;
+      receiverId: string;
     };
 
 // TODO change message type
@@ -94,6 +101,21 @@ export const messageStoreReducer = (
   action: MessageStoreAction
 ): MessageStoreState => {
   switch (action.type) {
+    case MessageStoreActionType.ADD_MY_MESSAGE: {
+      return {
+        ...state,
+        userMessagesMap: new Map([
+          ...Array.from(state.userMessagesMap),
+          [
+            action.receiverId,
+            [
+              ...(state.userMessagesMap.get(action.receiverId) || []),
+              action.message,
+            ],
+          ],
+        ]),
+      };
+    }
     case MessageStoreActionType.ADD_MESSAGE_PART: {
       const messagePart = action.messagePart;
 
@@ -111,6 +133,10 @@ export const messageStoreReducer = (
         if (messageParts.size + 1 === messagePart.partsCount) {
           const messagePartsArray = Array.from(messageParts);
           messagePartsArray.push([messagePart.partIndex, messagePart]);
+          console.log(
+            "messageParts",
+            messagePartsArray.map((mp) => mp[1].decryptedText)
+          );
           messagePartsArray.sort((a, b) => a[0] - b[0]);
           const decryptedText = messagePartsArray
             .map((mp) => mp[1].decryptedText)
@@ -120,7 +146,10 @@ export const messageStoreReducer = (
             text: decryptedText,
             timestamp: new Date(), // TODO something like timestamp authority
             senderId: messagePart.senderId,
+            fromMe: false,
           };
+          console.log(message.text);
+          console.debug(message);
           const senderId = messagePart.senderId;
           const userMessages = state.userMessagesMap.get(senderId);
           if (userMessages) {
