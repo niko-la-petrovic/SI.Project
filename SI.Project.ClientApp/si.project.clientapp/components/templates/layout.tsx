@@ -261,11 +261,15 @@ export default function Layout({ children }: LayoutProps) {
         return;
       }
 
+      messageStoreDispatch({
+        type: MessageStoreActionType.ADD_MESSAGE_PART,
+        messagePart: {
+          ...messagePart,
+          decryptedText: messagePartDecrypted,
+        },
+      });
+
       console.log(JSON.stringify(messagePartDecrypted));
-      // messageStoreDispatch({
-      //   type: MessageStoreActionType.ADD_MESSAGE_PART,
-      //   messagePart: messagePartDecrypted,
-      // });
     };
 
     Object.keys(SignalRHandlers).forEach((handler) => {
