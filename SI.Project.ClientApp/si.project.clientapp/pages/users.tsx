@@ -25,10 +25,7 @@ export default function Users() {
   );
   const [searchUserQuery, setSearchUserQuery] = useState<string>("");
   const searchUserQueryDebounced = useDebounce(searchUserQuery, 500);
-  const [selectedUser, setSelectedUser] = useState<back_end.GetUserDto | null>(
-    null
-  );
-
+  
   const { connection } = useContext(SignalRContext);
 
   useEffect(() => {

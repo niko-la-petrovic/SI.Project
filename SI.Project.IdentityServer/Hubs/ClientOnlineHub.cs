@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using SI.Project.IdentityServer.Dtos.Messaging;
 using SI.Project.IdentityServer.Dtos.Users;
 using SI.Project.IdentityServer.Extensions;
 using SI.Project.IdentityServer.Services;
@@ -13,7 +14,9 @@ namespace SI.Project.IdentityServer.Hubs;
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class ClientOnlineHub : Hub
 {
-    private const string PrivateErrorMessage = "PrivateErrorMessage";
+    private const string PrivateErrorMessage = nameof(PrivateErrorMessage);
+    private const string PublicKeyRequest = nameof(PublicKeyRequest);
+    private const string DirectReceiveMessagePart = nameof(DirectReceiveMessagePart);
     private readonly ILogger _logger;
 
     public ClientOnlineHub(ILogger<ClientOnlineHub> logger)
@@ -67,7 +70,7 @@ public class ClientOnlineHub : Hub
         }
 
         _logger.LogInformation("Sending public key request from user {0} to user {1}", userId, requestedUserId);
-        await Clients.User(requestedUserId).SendAsync("PublicKeyRequest", new PostUserPublicKeyRequestMessageDto
+        await Clients.User(requestedUserId).SendAsync(PublicKeyRequest, new PostUserPublicKeyRequestMessageDto
         {
             Requestor = requestorStatus,
             UserId = requestedUserId,
@@ -121,5 +124,29 @@ public class ClientOnlineHub : Hub
 
         _logger.LogInformation("Accepting public key request from user {0} to user {1}", requestMessageDto.Requestor.Id, userId);
         await Clients.User(requestMessageDto.Requestor.Id).SendAsync("PublicKeyRequestAccepted", userId, accepter.UserName, accepterPublicKey);
+    }
+
+    public async Task DirectSendMessagePart(MessagePart messagePart, [FromServices] IUsersService usersService)
+    {
+        var userId = Context.UserIdentifier;
+        if (userId != messagePart.SenderId)
+        {
+            {
+                _logger.LogInformation("User {0} tried to send message part as user {1}", userId, messagePart.SenderId);
+                await Clients.User(userId).SendAsync(PrivateErrorMessage,
+                    $"You are not allowed to send message parts on other users behalf ({messagePart.SenderId}).");
+                return;
+            }
+        }
+
+        var sender = await usersService.GetOnlineUserAsync(messagePart.SenderId);
+        if (sender is null)
+        {
+            await Clients.User(userId).SendAsync(PrivateErrorMessage, $"You are offline.");
+            return;
+        }
+
+        _logger.LogInformation("Sending message part from user {0} to user {1}", messagePart.SenderId, messagePart.ReceiverId);
+        await Clients.User(messagePart.ReceiverId).SendAsync(DirectReceiveMessagePart, messagePart);
     }
 }

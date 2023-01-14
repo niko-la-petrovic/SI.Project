@@ -6,6 +6,7 @@ import {
   certStoreReducer,
 } from "../../store/cert-store";
 import {
+  IMessagePart,
   MessageStoreActionType,
   MessageStoreContext,
   messageStoreInitialState,
@@ -42,6 +43,8 @@ export enum SignalRHandlers {
   PublicKeyRequestDenied = "PublicKeyRequestDenied",
   PublicKeyRequestAccepted = "PublicKeyRequestAccepted",
   SendMessageRequest = "SendMessageRequest",
+  DirectSendMessagePart = "DirectSendMessagePart",
+  DirectReceiveMessagePart = "DirectReceiveMessagePart",
 }
 
 export interface ComponentProps {
@@ -214,6 +217,15 @@ export default function Layout({ children }: LayoutProps) {
       });
     };
 
+    const handleDirectReceiveMessagePart = (messagePart: IMessagePart) => {
+      console.debug(messagePart);
+      
+      // messageStoreDispatch({
+      //   type: MessageStoreActionType.ADD_MESSAGE_PART,
+      //   messagePart: messagePartDecrypted,
+      // });
+    };
+
     Object.keys(SignalRHandlers).forEach((handler) => {
       connection.off(handler);
     });
@@ -231,6 +243,10 @@ export default function Layout({ children }: LayoutProps) {
     connection.on(
       SignalRHandlers.PublicKeyRequestAccepted,
       handlePublicKeyRequestAccepted
+    );
+    connection.on(
+      SignalRHandlers.DirectReceiveMessagePart,
+      handleDirectReceiveMessagePart
     );
     connection.onclose(() => {
       toast("Connection closed");

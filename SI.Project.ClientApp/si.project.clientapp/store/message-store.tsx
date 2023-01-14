@@ -5,13 +5,26 @@ import forge from "node-forge";
 // TODO add user personal info props
 export type IUser = back_end.IGetUserDto & {
   chatOpened: boolean;
-  publicKey?: forge.pki.PublicKey | undefined;
+  publicKey?: forge.pki.rsa.PublicKey | undefined;
   publicKeyThumbprintHex?: string | undefined;
 };
 
 export type IMessage = {
   id: string;
   text: string;
+  encryptedText: string;
+  senderId: string;
+};
+
+export type IMessagePart = {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  partIndex: number;
+  partsCount: number;
+  encrypted: string;
+  hash: string;
+  signature: string;
 };
 
 export enum MessageStoreActionType {
@@ -19,6 +32,7 @@ export enum MessageStoreActionType {
   REMOVE_USER = "REMOVE_USER",
   ADD_USER_PUBLIC_KEY = "ADD_USER_PUBLIC_KEY",
   OPEN_CHAT = "OPEN_CHAT",
+  SET_MESSAGE_INPUT = "SET_MESSAGE_INPUT",
 }
 
 export type MessageStoreAction =
@@ -33,22 +47,29 @@ export type MessageStoreAction =
   | {
       type: MessageStoreActionType.ADD_USER_PUBLIC_KEY;
       userId: string;
-      publicKey: forge.pki.PublicKey;
+      publicKey: forge.pki.rsa.PublicKey;
     }
   | {
       type: MessageStoreActionType.OPEN_CHAT;
       userId: string;
+    }
+  | {
+      type: MessageStoreActionType.SET_MESSAGE_INPUT;
+      userId: string;
+      messageInput: string;
     };
 
 // TODO change message type
 export type MessageStoreState = {
   users: IUser[];
   userMessagesMap: Map<string, IMessage[]>;
+  userMessageInputsMap: Map<string, string>;
 };
 
 export const messageStoreInitialState: MessageStoreState = {
   users: [],
   userMessagesMap: new Map(),
+  userMessageInputsMap: new Map(),
 };
 
 export const MessageStoreContext = createContext({
@@ -85,6 +106,15 @@ export const messageStoreReducer = (
       return {
         ...state,
         users: state.users.filter((u) => u.id !== action.userId),
+      };
+
+    case MessageStoreActionType.SET_MESSAGE_INPUT:
+      return {
+        ...state,
+        userMessageInputsMap: new Map([
+          ...Array.from(state.userMessageInputsMap),
+          [action.userId, action.messageInput],
+        ]),
       };
     case MessageStoreActionType.ADD_USER_PUBLIC_KEY:
       return {
