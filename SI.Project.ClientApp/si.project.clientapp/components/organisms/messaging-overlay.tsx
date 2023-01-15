@@ -18,6 +18,8 @@ import { MdArrowLeft, MdExpandMore, MdSend } from "react-icons/md";
 import { SignalRContext, SignalRHandlers } from "../templates/layout";
 
 import { CertStoreContext } from "../../store/cert-store";
+import { HubConnection } from "@microsoft/signalr";
+import Jimp from "jimp";
 import _ from "lodash";
 import forge from "node-forge";
 import { format } from "date-fns";
@@ -84,6 +86,11 @@ export default function MessagingOverlay() {
     const messagePartsCount = messageParts.length;
     console.log(messageParts);
 
+    // TODO remove
+    const senderPublicKey = certStoreState.publicKey as forge.pki.rsa.PublicKey;
+    if (!senderPublicKey) return;
+    console.debug(senderPublicKey);
+
     for (
       let messagePartIndex = 0;
       messagePartIndex < messageParts.length;
@@ -102,29 +109,39 @@ export default function MessagingOverlay() {
       const signedMessageDigest = senderPrivateKey.sign(messageDigest);
       console.log(signedMessageDigest);
 
-      // TODO remove
-      const senderPublicKey =
-        certStoreState.publicKey as forge.pki.rsa.PublicKey;
-      if (!senderPublicKey) return;
       const verifyResult = senderPublicKey.verify(
         hash.bytes(),
         signedMessageDigest
       );
       console.log(verifyResult);
 
-      const messagePart: IMessagePart = {
-        id: messageId,
-        senderId: session?.user.id || "",
-        receiverId: userId || "",
-        partIndex: messagePartIndex,
-        partsCount: messagePartsCount,
-        encrypted: encrypted,
-        hash: hash.bytes(),
-        hashAlgorithm: hashAlgorithm,
-        signature: signedMessageDigest,
-      };
+      applySteg(encrypted)
+        .then((steg) => {
+          const messagePart: IMessagePart = {
+            id: messageId,
+            senderId: session?.user.id || "",
+            receiverId: userId || "",
+            partIndex: messagePartIndex,
+            partsCount: messagePartsCount,
+            encrypted: steg,
+            hash: hash.bytes(),
+            hashAlgorithm: hashAlgorithm,
+            signature: signedMessageDigest,
+          };
 
-      connection?.invoke(SignalRHandlers.DirectSendMessagePart, messagePart);
+          connection?.invoke(
+            SignalRHandlers.DirectSendMessagePart,
+            messagePart
+          );
+
+          extractSteg(steg).then((extracted) => {
+            console.log(extracted === encrypted, encrypted, extracted);
+          });
+        })
+        .catch((e) => {
+          toast.error("Failed to apply steganography");
+          console.error(e);
+        });
     }
   };
 
@@ -175,7 +192,13 @@ export default function MessagingOverlay() {
                                       message.fromMe ? "justify-end" : ""
                                     }`}
                                   >
-                                    <span className={`break-all`}>
+                                    <span
+                                      className={`break-all rounded-xl p-2 ${
+                                        message.fromMe
+                                          ? "bg-blue-100"
+                                          : "bg-red-100"
+                                      }`}
+                                    >
                                       {message.text}
                                     </span>
                                   </div>
@@ -264,3 +287,101 @@ export default function MessagingOverlay() {
     </div>
   );
 }
+
+export const applySteg = (message: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const messageBuffer = Buffer.from(forge.util.encode64(message), "utf8");
+    fetch("https://picsum.photos/100")
+      .then((res) => res.blob())
+      .then((blob) => {
+        blob.arrayBuffer().then((arrayBuffer) => {
+          const buffer = Buffer.from(new Uint8Array(arrayBuffer));
+          console.log(buffer);
+          Jimp.read(buffer).then((image) => {
+            image.getBufferAsync(Jimp.MIME_BMP).then((buffer) => {
+              console.log(buffer);
+
+              // BMP header start
+              let bufferByteIndex = 54;
+
+              if (
+                bufferByteIndex + 32 + messageBuffer.length * 8 >
+                buffer.length
+              ) {
+                reject("Message too long");
+                return;
+              }
+              // write message length
+              const length = messageBuffer.length;
+              for (let i = 0; i < 4; i++) {
+                const byteValue = (length >> (i * 8)) & 0xff;
+                for (let j = 0; j < 8; j++) {
+                  const bitValue = (byteValue >> j) & 1;
+                  const currentByte = buffer[bufferByteIndex];
+                  const newByte = (currentByte & 0xfe) | bitValue;
+                  buffer[bufferByteIndex] = newByte;
+                  bufferByteIndex++;
+                }
+              }
+
+              for (let i = 0; i < messageBuffer.length; i++) {
+                let messageByte = messageBuffer[i];
+                for (let j = 0; j < 8; j++) {
+                  let messageBit = (messageByte >> j) & 1;
+                  const currentByte = buffer[bufferByteIndex];
+                  const newByte = (currentByte & 0xfe) | messageBit;
+                  buffer[bufferByteIndex] = newByte;
+                  bufferByteIndex++;
+                }
+              }
+
+              Jimp.read(buffer).then((image) => {
+                image.getBase64(Jimp.MIME_BMP, (err, url) => {
+                  resolve(url);
+                });
+              });
+            });
+          });
+        });
+      });
+  });
+};
+
+export const extractSteg = (base64: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    Jimp.read(base64).then((img) => {
+      img.getBufferAsync(Jimp.MIME_BMP).then((buffer) => {
+        console.log(buffer);
+        let bufferByteIndex = 54;
+        let length = 0;
+        for (let i = 0; i < 4; i++) {
+          let byteValue = 0;
+          for (let j = 0; j < 8; j++) {
+            const currentByte = buffer[bufferByteIndex];
+            const currentBit = currentByte & 1;
+            byteValue |= currentBit << j;
+            bufferByteIndex++;
+          }
+          length |= byteValue << (i * 8);
+        }
+        console.log(length);
+        const messageBuffer = Buffer.alloc(length);
+        for (let i = 0; i < length; i++) {
+          let messageByte = 0;
+          for (let j = 0; j < 8; j++) {
+            const currentByte = buffer[bufferByteIndex];
+            const currentBit = currentByte & 1;
+            messageByte |= currentBit << j;
+            bufferByteIndex++;
+          }
+          messageBuffer[i] = messageByte;
+        }
+        const reconstructedMessage = forge.util.decode64(
+          messageBuffer.toString()
+        );
+        console.log(reconstructedMessage);
+        resolve(reconstructedMessage);
+      });
+    });
+  });
+};

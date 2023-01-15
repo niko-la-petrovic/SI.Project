@@ -12,6 +12,7 @@ import {
   messageStoreInitialState,
   messageStoreReducer,
 } from "../../store/message-store";
+import MessagingOverlay, { extractSteg } from "../organisms/messaging-overlay";
 import { createContext, useEffect, useReducer, useState } from "react";
 import {
   receivedReqPubKeyToastId,
@@ -28,7 +29,6 @@ import { Button } from "@mui/material";
 import Footer from "../organisms/footer";
 import Head from "next/head";
 import Header from "../organisms/header";
-import MessagingOverlay from "../organisms/messaging-overlay";
 import { PostUserPublicKeyRequestMessageDto } from "../../types/dtos";
 import forge from "node-forge";
 import { getIsApiUrl } from "../../services/auth";
@@ -148,7 +148,6 @@ export default function Layout({ children }: LayoutProps) {
                     publicKeyThumbprintHex: publicKeyFingerprint.toHex(),
                   },
                 });
-                console.log("added user to message store");
               }}
             >
               Accept
@@ -241,35 +240,38 @@ export default function Layout({ children }: LayoutProps) {
         return;
       }
 
-      const messageDigest = forge.md.algorithms[hashAlgorithm].create();
-      messageDigest.update(messagePart.encrypted);
-      const hash = messageDigest.digest().bytes();
-      const verifiedSignature = senderPublicKey.verify(
-        hash,
-        messagePart.signature
-      );
-      if (!verifiedSignature) {
-        toast.error(`Received message part with invalid signature`);
-        return;
-      }
+      console.debug(messagePart.encrypted);
+      extractSteg(messagePart.encrypted).then((steg) => {
+        const encrypted = steg;
 
-      const messagePartDecrypted = certStore.privateKey?.decrypt(
-        messagePart.encrypted
-      );
-      if (!messagePartDecrypted) {
-        toast.error(`Failed to decrypt message part`);
-        return;
-      }
+        const messageDigest = forge.md.algorithms[hashAlgorithm].create();
+        messageDigest.update(encrypted);
+        const hash = messageDigest.digest().bytes();
+        const verifiedSignature = senderPublicKey.verify(
+          hash,
+          messagePart.signature
+        );
+        if (!verifiedSignature) {
+          toast.error(`Received message part with invalid signature`);
+          return;
+        }
 
-      messageStoreDispatch({
-        type: MessageStoreActionType.ADD_MESSAGE_PART,
-        messagePart: {
-          ...messagePart,
-          decryptedText: messagePartDecrypted,
-        },
+        const messagePartDecrypted = certStore.privateKey?.decrypt(encrypted);
+        if (!messagePartDecrypted) {
+          toast.error(`Failed to decrypt message part`);
+          return;
+        }
+
+        messageStoreDispatch({
+          type: MessageStoreActionType.ADD_MESSAGE_PART,
+          messagePart: {
+            ...messagePart,
+            decryptedText: messagePartDecrypted,
+          },
+        });
+
+        console.log(JSON.stringify(messagePartDecrypted));
       });
-
-      console.log(JSON.stringify(messagePartDecrypted));
     };
 
     Object.keys(SignalRHandlers).forEach((handler) => {

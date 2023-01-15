@@ -55,7 +55,10 @@ internal static class HostingExtensions
             .AddProblemDetails(env)
             .AddControllers()
             .AddProblemDetailsConvention(env);
-        services.AddSignalR();
+        services.AddSignalR(options =>
+        {
+            options.MaximumReceiveMessageSize = 1024 * 1024;
+        });
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
 

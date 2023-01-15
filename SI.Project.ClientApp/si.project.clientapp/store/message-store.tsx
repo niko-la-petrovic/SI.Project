@@ -157,7 +157,8 @@ export const messageStoreReducer = (
               ...state,
               messagePartsMap: new Map([
                 ...Array.from(state.messagePartsMap),
-                [messagePartId, new Map(messagePartsArray)],
+                [messagePartId, new Map()],
+                // [messagePartId, new Map(messagePartsArray)], // if we want to keep message parts
               ]),
               userMessagesMap: new Map([
                 ...Array.from(state.userMessagesMap),
@@ -169,7 +170,8 @@ export const messageStoreReducer = (
               ...state,
               messagePartsMap: new Map([
                 ...Array.from(state.messagePartsMap),
-                [messagePartId, new Map(messagePartsArray)],
+                // [messagePartId, new Map(messagePartsArray)], // if we want to keep message parts
+                [messagePartId, new Map()],
               ]),
               userMessagesMap: new Map([
                 ...Array.from(state.userMessagesMap),
