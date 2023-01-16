@@ -9,6 +9,7 @@
 	<ItemGroup>
 		<PackageReference Include="EasyNetQ" Version="7.3.8" />
 		<PackageReference Include="EasyNetQ.DI.Microsoft" Version="7.3.8" />
+		<PackageReference Include="EasyNetQ.Management.Client" Version="1.4.2" />
 		<PackageReference Include="EasyNetQ.Serialization.SystemTextJson" Version="7.3.8" />
 		<PackageReference Include="Hellang.Middleware.ProblemDetails" Version="6.5.1" />
 		<PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="6.1.4" />
