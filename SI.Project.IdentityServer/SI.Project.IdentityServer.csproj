@@ -39,7 +39,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Folder Include="Configuration\" />
 		<Folder Include="wwwroot\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\SI.Project.Shared\SI.Project.Shared.csproj" />
 	</ItemGroup>
 
 </Project>

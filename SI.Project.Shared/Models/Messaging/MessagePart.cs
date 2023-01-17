@@ -1,4 +1,4 @@
-﻿namespace SI.Project.IdentityServer.Dtos.Messaging;
+﻿namespace SI.Project.Shared.Models.Messaging;
 
 public class MessagePart
 {

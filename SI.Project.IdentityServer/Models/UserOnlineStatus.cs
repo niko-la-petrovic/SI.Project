@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using SI.Project.Shared.Models;
 
 namespace SI.Project.IdentityServer.Models;
 

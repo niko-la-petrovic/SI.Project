@@ -1,4 +1,4 @@
-﻿namespace SI.Project.IdentityServer.Models;
+﻿namespace SI.Project.Shared.Models;
 
 public abstract class EntityOnlineStatus
 {

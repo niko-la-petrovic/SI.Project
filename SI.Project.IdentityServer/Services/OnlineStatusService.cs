@@ -1,4 +1,5 @@
 ﻿using SI.Project.IdentityServer.Models;
+using SI.Project.Shared.Models;
 using System.Collections.Concurrent;
 
 namespace SI.Project.IdentityServer.Services;
@@ -33,13 +34,21 @@ public abstract class EntityOnlineStatusService<TEntity> : IEntityOnlineStatusSe
         return _onlineStatuses.Values;
     }
 
-    public IEnumerable<TEntity> GetLastOnlineUsers(TimeSpan timeSpan, int limit)
+    public IEnumerable<TEntity> GetLastOnlineEntities(TimeSpan timeSpan, int limit)
     {
         // TODO cache
         return _onlineStatuses.Values
             .Where(os => os.IsOnline && DateTime.UtcNow.Subtract(os.LastHeartbeatTime) < timeSpan)
             .OrderByDescending(os => os.LastHeartbeatTime)
             .Take(limit)
+            .ToList();
+    }
+
+    public IEnumerable<TEntity> GetOnlineEntities()
+    {
+        // TODO cache
+        return _onlineStatuses.Values
+            .Where(os => os.IsOnline)
             .ToList();
     }
 

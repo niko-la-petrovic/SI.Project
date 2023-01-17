@@ -1,9 +1,10 @@
 ﻿using EasyNetQ;
+using EasyNetQ.AutoSubscribe;
+using SI.Project.Shared.Models.Messaging;
 
 namespace SI.Project.IdentityServer.Models.Messages;
 
-[Queue("unauthorized-requests")]
 public class UnauthorizedRequestMessage
 {
-    public string Text { get; set; }
+    public MessagePart MessagePart { get; set; }
 }

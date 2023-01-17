@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using EasyNetQ;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using SI.Project.IdentityServer.Dtos.Messaging;
 using SI.Project.IdentityServer.Dtos.Users;
 using SI.Project.IdentityServer.Extensions;
 using SI.Project.IdentityServer.Services;
+using SI.Project.IdentityServer.Services.Servers;
 using SI.Project.IdentityServer.Services.Users;
+using SI.Project.Shared.Models.Messaging;
 using System.Security.Claims;
 
 namespace SI.Project.IdentityServer.Hubs;
@@ -126,7 +128,11 @@ public class ClientOnlineHub : Hub
         await Clients.User(requestMessageDto.Requestor.Id).SendAsync("PublicKeyRequestAccepted", userId, accepter.UserName, accepterPublicKey);
     }
 
-    public async Task DirectSendMessagePart(MessagePart messagePart, [FromServices] IUsersService usersService)
+    public async Task DirectSendMessagePart(
+        MessagePart messagePart,
+        [FromServices] IUsersService usersService,
+        [FromServices] IBus bus,
+        [FromServices] IServersService serversService)
     {
         var userId = Context.UserIdentifier;
         if (userId != messagePart.SenderId)
@@ -146,7 +152,20 @@ public class ClientOnlineHub : Hub
             return;
         }
 
-        _logger.LogInformation("Sending message part from user {0} to user {1}", messagePart.SenderId, messagePart.ReceiverId);
+        // TODO replace log param names with semantic names
+        bus.PubSub.Publish(messagePart, config =>
+        {
+            var servers = serversService.GetOnlineServers();
+            var serverCount = servers.Count();
+            var serverIndex = messagePart.PartIndex % serverCount;
+            var server = servers.ElementAt(serverIndex);
+            var serverId = server.Id;
+
+            _logger.LogInformation("Sending message part {MessagePartId} from user {UserId} to server {ServerId}", messagePart.PartIndex, messagePart.SenderId, serverId);
+            config.WithTopic(serverId);
+        });
+
+        _logger.LogInformation("Sending message part from user {UserId} to user {1}", messagePart.SenderId, messagePart.ReceiverId);
         await Clients.User(messagePart.ReceiverId).SendAsync(DirectReceiveMessagePart, messagePart);
     }
 }

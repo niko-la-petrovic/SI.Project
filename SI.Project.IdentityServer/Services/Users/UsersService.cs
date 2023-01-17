@@ -22,7 +22,7 @@ public class UsersService : IUsersService
     public async Task<IEnumerable<GetUserDto>> GetNewestOnlineUsersAsync()
     {
         var lastOnlineUsers = _usersOnlineStatusService
-            .GetLastOnlineUsers(TimeSpan.FromSeconds(OnlineStatusConstants.LastOnlineUsersSeconds), UserPageLimit)
+            .GetLastOnlineEntities(TimeSpan.FromSeconds(OnlineStatusConstants.LastOnlineUsersSeconds), UserPageLimit)
             .ToList();
 
         var userIds = lastOnlineUsers.Select(x => x.Id);

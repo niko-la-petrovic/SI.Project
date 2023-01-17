@@ -14,7 +14,7 @@ using SI.Project.IdentityServer.Authorization;
 using Hellang.Middleware.ProblemDetails;
 using SI.Project.IdentityServer.Services.Identity;
 using Microsoft.AspNetCore.HttpOverrides;
-using EasyNetQ;
+using SI.Project.Shared.Extensions;
 
 namespace SI.Project.IdentityServer.Extensions;
 
@@ -26,10 +26,7 @@ internal static class HostingExtensions
         var configuration = builder.Configuration;
         var env = builder.Environment;
 
-        services.RegisterEasyNetQ(configuration.GetConnectionString("RMQUnauhtorizedRequestsConnection"), register =>
-        {
-            register.EnableSystemTextJson();
-        });
+        services.AddRmq(configuration);
 
         services.AddCors(options =>
         {
@@ -90,7 +87,7 @@ internal static class HostingExtensions
                 options.Events.RaiseSuccessEvents = true;
 
                 // see https://docs.duendesoftware.com/identityserver/v5/fundamentals/resources/
-                options.EmitStaticAudienceClaim = true;         
+                options.EmitStaticAudienceClaim = true;
             })
             .AddTestUsers(TestUsers.Users)
             // this adds the config data from DB (clients, resources, CORS)
