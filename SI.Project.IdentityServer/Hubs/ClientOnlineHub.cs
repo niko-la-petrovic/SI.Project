@@ -18,7 +18,7 @@ public class ClientOnlineHub : Hub
 {
     private const string PrivateErrorMessage = nameof(PrivateErrorMessage);
     private const string PublicKeyRequest = nameof(PublicKeyRequest);
-    private const string DirectReceiveMessagePart = nameof(DirectReceiveMessagePart);
+    public const string DirectReceiveMessagePart = nameof(DirectReceiveMessagePart);
     private readonly ILogger _logger;
 
     public ClientOnlineHub(ILogger<ClientOnlineHub> logger)
@@ -165,7 +165,8 @@ public class ClientOnlineHub : Hub
             config.WithTopic(serverId);
         });
 
-        _logger.LogInformation("Sending message part from user {UserId} to user {1}", messagePart.SenderId, messagePart.ReceiverId);
-        await Clients.User(messagePart.ReceiverId).SendAsync(DirectReceiveMessagePart, messagePart);
+        // TODO move to extension method
+        //_logger.LogInformation("Sending message part from user {UserId} to user {1}", messagePart.SenderId, messagePart.ReceiverId);
+        //await Clients.User(messagePart.ReceiverId).SendAsync(DirectReceiveMessagePart, messagePart);
     }
 }

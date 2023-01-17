@@ -1,6 +1,7 @@
 using SI.Project.Api.Services;
 using SI.Project.Shared.Extensions;
 using Serilog;
+using SI.Project.IdentityServer.Services.Background;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -23,13 +24,14 @@ try
 
     // Add services to the container.
 
-    builder.Services.AddControllers();
+    services.AddControllers();
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+    services.AddEndpointsApiExplorer();
+    services.AddSwaggerGen();
 
     services.AddRmq(configuration);
-    builder.Services.AddHostedService<ServerHealthcheckSendService>();
+    services.AddHostedService<ServerHealthcheckSendService>();
+    services.AddHostedService<MessagePartProcessingService>();
 
     var app = builder.Build();
 

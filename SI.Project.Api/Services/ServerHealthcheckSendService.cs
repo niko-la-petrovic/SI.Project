@@ -7,12 +7,14 @@ public class ServerHealthcheckSendService : BackgroundService
 {
     private readonly ILogger<ServerHealthcheckSendService> _logger;
     private readonly IBus _bus;
-    private readonly string _serverId = Guid.NewGuid().ToString();
+    private static readonly string _serverId = Guid.NewGuid().ToString();
     public ServerHealthcheckSendService(ILogger<ServerHealthcheckSendService> logger, IBus bus)
     {
         _logger = logger;
         _bus = bus;
     }
+
+    public static string ServerId => _serverId;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

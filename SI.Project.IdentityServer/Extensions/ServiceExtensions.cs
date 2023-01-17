@@ -15,6 +15,7 @@ public static class ServiceExtensions
         services.AddSingleton<IServerOnlineStatusService, ServerOnlineStatusService>();
         services.AddHostedService<UsersOnlineStatusBackgroundService>();
         services.AddHostedService<ServerOnlineStatusBackgroundService>();
+        services.AddHostedService<ProcessedMessagePartBackgroundService>();
 
         services.AddScoped<IServersService, ServersService>();
         services.AddScoped<IUserDetailsService, UserDetailsService>();

@@ -1,7 +1,6 @@
 ﻿using EasyNetQ;
 using EasyNetQ.Topology;
 using SI.Project.IdentityServer.Models;
-using SI.Project.IdentityServer.Models.Messages;
 using SI.Project.Shared.Models.Messaging.ServerHealthCheck;
 
 namespace SI.Project.IdentityServer.Services.Consumers;
