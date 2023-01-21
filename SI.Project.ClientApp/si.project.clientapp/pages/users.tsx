@@ -176,7 +176,7 @@ export default function Users() {
             />
           ))}
         </div>
-        <div className="h-[920px]">
+        {/* <div className="h-[920px]">
           <button
             onClick={() => {
               const text1 =
@@ -303,7 +303,7 @@ export default function Users() {
             test
           </button>
           {imageUrl && <img src={imageUrl}></img>}
-        </div>
+        </div> */}
       </div>
     </>
   );

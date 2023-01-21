@@ -15,10 +15,15 @@ import {
   MdMenu,
 } from "react-icons/md";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { useContext, useState } from "react";
 
+import Avvvatars from "avvvatars-react";
+import { CertStoreContext } from "../../store/cert-store";
 import { FcAbout } from "react-icons/fc";
+import Image from "next/image";
 import Link from "next/link";
 import Title from "../molecules/title";
+import forge from "node-forge";
 
 export default function Header({
   drawerOpen,
@@ -28,6 +33,10 @@ export default function Header({
   setDrawerOpen: (open: boolean) => void;
 }) {
   const { data: session } = useSession();
+  const { state: certStore, dispatch: certStoreDispatch } =
+    useContext(CertStoreContext);
+
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>();
 
   return (
     <div>
@@ -50,6 +59,17 @@ export default function Header({
         <div className="flex items-center justify-start gap-4 ">
           {session ? (
             <>
+              {certStore.publicKey && (
+                <div className="relative">
+                  <Avvvatars
+                    value={forge.pki
+                      .getPublicKeyFingerprint(certStore.publicKey)
+                      .toHex()}
+                    shadow
+                    style="shape"
+                  />
+                </div>
+              )}
               <span className="text-lg font-bold">{session?.user?.name}</span>
               <Button variant="contained" onClick={() => signOut()}>
                 Sign Out

@@ -321,6 +321,8 @@ export default function Layout({ children }: LayoutProps) {
     if (!(connection && connection.state === HubConnectionState.Connected))
       return;
 
+      // TODO send heartbeat only if public and private key configured
+
     connection?.invoke("SendHeartbeat");
   }, 5000);
 

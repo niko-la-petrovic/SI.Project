@@ -17,6 +17,7 @@ import {
 import { MdArrowLeft, MdExpandMore, MdSend } from "react-icons/md";
 import { SignalRContext, SignalRHandlers } from "../templates/layout";
 
+import Avvvatars from "avvvatars-react";
 import { CertStoreContext } from "../../store/cert-store";
 import { HubConnection } from "@microsoft/signalr";
 import Jimp from "jimp";
@@ -160,7 +161,16 @@ export default function MessagingOverlay() {
               <Accordion>
                 <AccordionSummary expandIcon={<MdExpandMore />}>
                   <div className="flex w-full items-center justify-between pr-4">
-                    <span className="font-bold text-lg">{u.userName}</span>
+                    <div className="flex items-center gap-2">
+                      {u.publicKeyThumbprintHex && (
+                        <Avvvatars
+                          value={u.publicKeyThumbprintHex}
+                          shadow
+                          style="shape"
+                        />
+                      )}
+                      <span className="font-bold text-lg">{u.userName}</span>
+                    </div>
                     <span className="text-sm">
                       {u.publicKeyThumbprintHex?.substring(0, 10)}...
                     </span>
@@ -270,7 +280,16 @@ export default function MessagingOverlay() {
                           }
                           className="flex justify-between"
                         >
-                          <span>{user.userName}</span>
+                          <div className="flex items-center gap-2">
+                            {user.publicKeyThumbprintHex && (
+                              <Avvvatars
+                                value={user.publicKeyThumbprintHex}
+                                shadow
+                                style="shape"
+                              />
+                            )}
+                            <span>{user.userName}</span>
+                          </div>
                           <span>
                             {user.publicKeyThumbprintHex?.substring(0, 8)}...
                           </span>
