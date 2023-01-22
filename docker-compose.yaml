@@ -1,33 +1,15 @@
-version: '3'
+version: '3.3'
 
 volumes:
-
-  sni_rmq_data:
-    external: true
-  sni_rmq_conf:
-    external: true
-
-networks:
-  seq:
-    external: true
+  seq-data:
 
 services:
-  rabbitmq:
-    restart: unless-stopped
-    image: rabbitmq:3-management-alpine
-    environment:
-      - RABBITMQ_DEFAULT_USER=client
-      - RABBITMQ_DEFAULT_PASS=pass
-      - management.enable_uaa=true
-      - management.oauth_enabled=true
-      - management.oauth_client_id=rabbit_user_client
-      - management.oauth_client_secret=rabbit_user_client_secret
-      - management.oauth_provider_url=https://localhost:5111
-    ports:
-      - 5672:5672
-      - 15672:15672
-    volumes:
-      - sni_rmq_data:/var/lib/rabbitmq/
-      - //c/Users/Blue-Glass/source/repos/SI.Project/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.config
-    networks:
-      - seq
+    seq:
+        container_name: seq
+        restart: unless-stopped
+        environment:
+            - ACCEPT_EULA=Y
+        image: 'datalust/seq:latest'
+        network_mode: host
+        volumes:
+          - seq-data:/data
