@@ -42,11 +42,12 @@ export default function MessagingOverlay() {
       messageState.userMessageInputsMap.get(userId || "") || "";
     if (messageText === "") return;
 
+    const minMessageLength = 3;
     const preparedMessageText =
-      messageText.length <= 3
-        ? messageText + " ".repeat(3 - messageText.length)
+      messageText.length <= minMessageLength
+        ? messageText + " ".repeat(minMessageLength - messageText.length)
         : messageText;
-    console.log(JSON.stringify(preparedMessageText));
+    console.debug(JSON.stringify(preparedMessageText));
 
     const receiverPublicKey = messageState.users.find(
       (u) => u.id === userId
@@ -55,7 +56,7 @@ export default function MessagingOverlay() {
       toast.error("Recipient's public key not found");
       return;
     }
-    console.log(receiverPublicKey);
+    console.debug(receiverPublicKey);
 
     const senderPrivateKey = certStoreState.privateKey;
     if (!senderPrivateKey) {
@@ -76,9 +77,11 @@ export default function MessagingOverlay() {
       receiverId: userId || "",
     });
 
-    // TODO add steganography
     const messagePlaintextLength = preparedMessageText.length;
-    const tryDivideInto = 3; // Math.random()*() +3
+    const tryDivideInto = Math.max(
+      minMessageLength,
+      Math.ceil(Math.random() * messagePlaintextLength)
+    ); // TODO CHECK DIVISION
     const messagePartSize = Math.floor(messagePlaintextLength / tryDivideInto);
     const messageParts = _.chunk(
       Array.from(preparedMessageText),
@@ -101,20 +104,20 @@ export default function MessagingOverlay() {
       console.log(JSON.stringify(messagePartText));
 
       const encrypted = receiverPublicKey.encrypt(messagePartText);
-      console.log(encrypted);
+      console.debug(encrypted);
       const messageDigest = forge.sha256.create();
       const hashAlgorithm = messageDigest.algorithm;
       messageDigest.update(encrypted);
       const hash = messageDigest.digest();
-      console.log(hash, hash.bytes(), hash.toHex());
+      console.debug(hash, hash.bytes(), hash.toHex());
       const signedMessageDigest = senderPrivateKey.sign(messageDigest);
-      console.log(signedMessageDigest);
+      console.debug(signedMessageDigest);
 
       const verifyResult = senderPublicKey.verify(
         hash.bytes(),
         signedMessageDigest
       );
-      console.log(verifyResult);
+      console.debug(verifyResult);
 
       applySteg(encrypted)
         .then((steg) => {
@@ -136,7 +139,7 @@ export default function MessagingOverlay() {
           );
 
           extractSteg(steg).then((extracted) => {
-            console.log(extracted === encrypted, encrypted, extracted);
+            console.debug(extracted === encrypted, encrypted, extracted);
           });
         })
         .catch((e) => {
@@ -315,10 +318,10 @@ export const applySteg = (message: string): Promise<string> => {
       .then((blob) => {
         blob.arrayBuffer().then((arrayBuffer) => {
           const buffer = Buffer.from(new Uint8Array(arrayBuffer));
-          console.log(buffer);
+          console.debug(buffer);
           Jimp.read(buffer).then((image) => {
             image.getBufferAsync(Jimp.MIME_BMP).then((buffer) => {
-              console.log(buffer);
+              console.debug(buffer);
 
               // BMP header start
               let bufferByteIndex = 54;
@@ -370,7 +373,7 @@ export const extractSteg = (base64: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     Jimp.read(base64).then((img) => {
       img.getBufferAsync(Jimp.MIME_BMP).then((buffer) => {
-        console.log(buffer);
+        console.debug(buffer);
         let bufferByteIndex = 54;
         let length = 0;
         for (let i = 0; i < 4; i++) {
@@ -383,7 +386,7 @@ export const extractSteg = (base64: string): Promise<string> => {
           }
           length |= byteValue << (i * 8);
         }
-        console.log(length);
+        console.debug(length);
         const messageBuffer = Buffer.alloc(length);
         for (let i = 0; i < length; i++) {
           let messageByte = 0;
@@ -398,7 +401,7 @@ export const extractSteg = (base64: string): Promise<string> => {
         const reconstructedMessage = forge.util.decode64(
           messageBuffer.toString()
         );
-        console.log(reconstructedMessage);
+        console.debug(reconstructedMessage);
         resolve(reconstructedMessage);
       });
     });

@@ -132,6 +132,18 @@ export const messageStoreReducer = (
       } else {
         if (messageParts.size + 1 === messagePart.partsCount) {
           const messagePartsArray = Array.from(messageParts);
+
+          if (
+            messagePartsArray.find((mp) => mp[0] === messagePart.partIndex) !==
+            undefined
+          ) {
+            console.warn(
+              "Received existing message part",
+              messagePart.partIndex
+            );
+            return state;
+          }
+
           messagePartsArray.push([messagePart.partIndex, messagePart]);
           console.log(
             "messageParts",

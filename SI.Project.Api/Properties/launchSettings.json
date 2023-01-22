@@ -20,6 +20,26 @@
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5025"
     },
+    "http2": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5026"
+    },
+    "http3": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5027"
+    },
     "https": {
       "commandName": "Project",
       "launchBrowser": true,

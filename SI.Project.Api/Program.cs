@@ -1,7 +1,7 @@
 using SI.Project.Api.Services;
 using SI.Project.Shared.Extensions;
 using Serilog;
-using SI.Project.IdentityServer.Services.Background;
+using SI.Project.Api.Services.Background;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -12,15 +12,15 @@ Log.Information("Starting up");
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-    builder.Host.UseSerilog((ctx, lc) => lc
-    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
-    .Enrich.FromLogContext()
-    .ReadFrom.Configuration(ctx.Configuration));
-
-
     var services = builder.Services;
     var configuration = builder.Configuration;
     var env = builder.Environment;
+
+    builder.Host.UseSerilog((ctx, lc) => lc
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
+    .WriteTo.Seq(configuration.GetSection("Serilog:Seq:Url").Get<string>())
+    .Enrich.FromLogContext()
+    .ReadFrom.Configuration(ctx.Configuration));
 
     // Add services to the container.
 

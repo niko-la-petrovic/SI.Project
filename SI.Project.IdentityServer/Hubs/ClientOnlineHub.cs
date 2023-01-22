@@ -36,7 +36,7 @@ public class ClientOnlineHub : Hub
     {
         var userId = Context.UserIdentifier;
 
-        _logger.LogInformation("Heartbeat from user {0}", userId);
+        _logger.LogInformation("Heartbeat from user {UserId}", userId);
 
         onlineStatusService.SetOnlineStatus(
             new Models.UserOnlineStatus(
@@ -71,7 +71,7 @@ public class ClientOnlineHub : Hub
             return;
         }
 
-        _logger.LogInformation("Sending public key request from user {0} to user {1}", userId, requestedUserId);
+        _logger.LogInformation("Sending public key request from user {UserId} to user {RequestedUserId}", userId, requestedUserId);
         await Clients.User(requestedUserId).SendAsync(PublicKeyRequest, new PostUserPublicKeyRequestMessageDto
         {
             Requestor = requestorStatus,
@@ -85,7 +85,7 @@ public class ClientOnlineHub : Hub
         var userId = Context.UserIdentifier;
         if (requestMessageDto.UserId != userId)
         {
-            _logger.LogInformation("User {0} tried to deny public key request from user {1}", userId, requestMessageDto.UserId);
+            _logger.LogInformation("User {UserId} tried to deny public key request from user {RequestedUserId}", userId, requestMessageDto.UserId);
 
             await Clients.User(userId).SendAsync(PrivateErrorMessage,
                 $"You are not allowed to deny public key request from user {requestMessageDto.UserId}.");
@@ -100,7 +100,7 @@ public class ClientOnlineHub : Hub
             return;
         }
 
-        _logger.LogInformation("Denying public key request from user {0} to user {1}", requestMessageDto.Requestor.Id, userId);
+        _logger.LogInformation("Denying public key request from user {RequestorId} to user {UserId}", requestMessageDto.Requestor.Id, userId);
         await Clients.User(requestMessageDto.Requestor.Id).SendAsync("PublicKeyRequestDenied", userId, denier.UserName);
     }
 
@@ -109,7 +109,7 @@ public class ClientOnlineHub : Hub
         var userId = Context.UserIdentifier;
         if (requestMessageDto.UserId != userId)
         {
-            _logger.LogInformation("User {0} tried to accept public key request from user {1}", userId, requestMessageDto.UserId);
+            _logger.LogInformation("User {UserId} tried to accept public key request from user {RequestedId}", userId, requestMessageDto.UserId);
             await Clients.User(userId).SendAsync(PrivateErrorMessage,
                 $"You are not allowed to accept public key request from user {requestMessageDto.UserId}.");
             return;
@@ -138,7 +138,7 @@ public class ClientOnlineHub : Hub
         if (userId != messagePart.SenderId)
         {
             {
-                _logger.LogInformation("User {0} tried to send message part as user {1}", userId, messagePart.SenderId);
+                _logger.LogInformation("User {UserId} tried to send message part as user {SenderId}", userId, messagePart.SenderId);
                 await Clients.User(userId).SendAsync(PrivateErrorMessage,
                     $"You are not allowed to send message parts on other users behalf ({messagePart.SenderId}).");
                 return;

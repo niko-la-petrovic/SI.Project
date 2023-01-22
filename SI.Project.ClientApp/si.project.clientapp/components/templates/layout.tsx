@@ -25,6 +25,7 @@ import signalR, {
   HubConnectionState,
 } from "@microsoft/signalr";
 
+import Avvvatars from "avvvatars-react";
 import { Button } from "@mui/material";
 import Footer from "../organisms/footer";
 import Head from "next/head";
@@ -121,10 +122,19 @@ export default function Layout({ children }: LayoutProps) {
       const toastId = receivedReqPubKeyToastId(pubKeyFingerPrintHex);
       toast.info(
         <div className="flex flex-col gap-2">
-          <div>
-            User <span className="font-bold">{request.requestor.userName}</span>{" "}
-            requests your public key. Their public key&apos;s fingerprint is{" "}
-            <span className="font-bold">{pubKeyFingerPrintHex}</span>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-start gap-4">
+              <Avvvatars value={pubKeyFingerPrintHex} shadow style="shape" />
+              <div>
+                User{" "}
+                <span className="font-bold">{request.requestor.userName}</span>{" "}
+                requests your public key.
+              </div>
+            </div>
+            <div>
+              Their public key&apos;s fingerprint is{" "}
+              <span className="font-bold">{pubKeyFingerPrintHex}</span>
+            </div>
           </div>
           <div className="flex items-center justify-between gap-4">
             <Button
@@ -196,10 +206,18 @@ export default function Layout({ children }: LayoutProps) {
       const publicKeyThumbprintHex = publicKeyThumbprint.toHex();
       toast.dismiss(reqPubKeyToastId(userId));
       toast.success(
-        <div>
-          User <span className="font-bold">{userName}</span> accepted your
-          request for their public key. Their public key&apos;s thumbprint is{" "}
-          <span className="font-bold">{publicKeyThumbprintHex}</span>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start gap-4">
+            <Avvvatars value={publicKeyThumbprintHex} shadow style="shape" />
+            <div>
+              User <span className="font-bold">{userName}</span> accepted your
+              request for their public key.
+            </div>
+          </div>
+          <div>
+            Their public key&apos;s thumbprint is{" "}
+            <span className="font-bold">{publicKeyThumbprintHex}</span>
+          </div>
         </div>,
         {
           autoClose: 5000,
@@ -321,7 +339,7 @@ export default function Layout({ children }: LayoutProps) {
     if (!(connection && connection.state === HubConnectionState.Connected))
       return;
 
-      // TODO send heartbeat only if public and private key configured
+    // TODO send heartbeat only if public and private key configured
 
     connection?.invoke("SendHeartbeat");
   }, 5000);

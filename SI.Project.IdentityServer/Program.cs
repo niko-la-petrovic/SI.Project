@@ -1,6 +1,7 @@
 ﻿using SI.Project.IdentityServer;
 using Serilog;
 using SI.Project.IdentityServer.Extensions;
+using SI.Project.IdentityServer.Migrations.ConfigurationDb;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -11,9 +12,14 @@ Log.Information("Starting up");
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+    var services = builder.Services;
+    var configuration = builder.Configuration;
+    var env = builder.Environment;
 
+    var seqUrl = configuration.GetSection("Serilog:Seq:Url").Get<string>();
     builder.Host.UseSerilog((ctx, lc) => lc
         .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
+        .WriteTo.Seq(seqUrl)
         .Enrich.FromLogContext()
         .ReadFrom.Configuration(ctx.Configuration));
 

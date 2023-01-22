@@ -18,7 +18,7 @@ public class ServerHealthcheckSendService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("ServerHealthcheckSendService is running.");
+        _logger.LogDebug("ServerHealthcheckSendService is running.");
 
         while (!stoppingToken.IsCancellationRequested)
         {

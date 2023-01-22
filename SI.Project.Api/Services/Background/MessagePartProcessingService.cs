@@ -1,8 +1,7 @@
 ﻿using EasyNetQ;
-using SI.Project.Api.Services;
 using SI.Project.Shared.Models.Messaging;
 
-namespace SI.Project.IdentityServer.Services.Background;
+namespace SI.Project.Api.Services.Background;
 
 public class MessagePartProcessingService : BackgroundService
 {
@@ -20,7 +19,7 @@ public class MessagePartProcessingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("MessagePartProcessingService is running.");
+        _logger.LogDebug("MessagePartProcessingService is running.");
 
         var serverId = ServerHealthcheckSendService.ServerId;
         _bus.PubSub.Subscribe<MessagePart>(serverId, messagePart =>
@@ -36,7 +35,14 @@ public class MessagePartProcessingService : BackgroundService
             {
             }, stoppingToken);
 
+        }, config =>
+        {
+            config.WithDurable(false);
+            config.WithAutoDelete(true);
+            config.WithTopic(serverId);
         }, stoppingToken);
+
+
 
         while (!stoppingToken.IsCancellationRequested)
         {

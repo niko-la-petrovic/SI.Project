@@ -23,7 +23,7 @@ public class ServerOnlineStatusBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("ServerOnlineStatusBackgroundService is running.");
+        _logger.LogDebug("ServerOnlineStatusBackgroundService is running.");
 
         _bus.PubSub.Subscribe<ServerOnlineStatus>(string.Empty, sos =>
         {
@@ -33,7 +33,7 @@ public class ServerOnlineStatusBackgroundService : BackgroundService
         }, stoppingToken);
         while (!stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation($"{nameof(ServerOnlineStatusBackgroundService)} is running.");
+            _logger.LogDebug($"{nameof(ServerOnlineStatusBackgroundService)} is running.");
 
             var removedStatuses = _serverOnlineService.RemoveOldStatuses(DateTime.UtcNow.AddSeconds(-OnlineStatusConstants.ServerMissingHeartBeatInactiveSeconds));
             if (removedStatuses.Any())

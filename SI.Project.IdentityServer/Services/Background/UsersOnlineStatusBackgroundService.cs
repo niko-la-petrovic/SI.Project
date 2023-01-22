@@ -17,8 +17,8 @@ public class UsersOnlineStatusBackgroundService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
-        {
-            _logger.LogInformation("UsersOnlineStatusBackgroundService is running.");
+        {   
+            _logger.LogDebug("UsersOnlineStatusBackgroundService is running.");
 
             var removedStatuses = _usersOnlineStatusService.RemoveOldStatuses(DateTime.UtcNow.AddSeconds(-OnlineStatusConstants.UserMissingHeartBeatInactiveSeconds));
             if (removedStatuses.Any())

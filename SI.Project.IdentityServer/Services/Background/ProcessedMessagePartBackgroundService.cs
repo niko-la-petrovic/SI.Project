@@ -24,7 +24,7 @@ public class ProcessedMessagePartBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("ProcessedMessagePartBackgroundService is running.");
+        _logger.LogDebug("ProcessedMessagePartBackgroundService is running.");
 
         _bus.PubSub.Subscribe<ProcessedMessagePart>(string.Empty, async pmp =>
         {
@@ -41,7 +41,7 @@ public class ProcessedMessagePartBackgroundService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            _logger.LogInformation("ProcessedMessagePartBackgroundService is running.");
+            _logger.LogDebug("ProcessedMessagePartBackgroundService is running.");
 
             await Task.Delay(10000, stoppingToken);
         }

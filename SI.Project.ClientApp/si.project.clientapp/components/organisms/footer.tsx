@@ -19,29 +19,27 @@ export default function Footer() {
         </div>
       </div>
       <div className="flex flex-col gap-y-4">
-        <span className="font-bold">Za studente</span>
+        <span className="font-bold">For users</span>
         <div className="flex flex-col gap-y-2">
-          <LinkText text="Način upotrebe" />
-          <LinkText text="Dostupnost" />
-          <LinkText text="Referenciranje" />
+          <LinkText text="Instructions" />
+          <LinkText text="Availability" />
+          <LinkText text="Privacy policy" />
         </div>
       </div>
       <div className="flex flex-col gap-y-4">
-        <span className="font-bold">Za profesore</span>
+        <span className="font-bold">For admins</span>
         <div className="flex flex-col gap-y-2">
-          <LinkText text="Upotreba u nastavi" />
-          <LinkText text="Doprinos" />
-          <LinkText text="Dodavanje uzoraka" />
+          <LinkText text="Rules" />
         </div>
       </div>
       <div className="flex flex-col gap-y-4">
-        <span className="font-bold">Za investitore</span>
+        <span className="font-bold">For investors</span>
         <div className="flex flex-col gap-y-2">
-          <LinkText text="Potencijal projekta" />
+          <LinkText text="Project Potential" />
         </div>
       </div>
       <div className="flex flex-col gap-y-4">
-        <span className="font-bold">Kontakt</span>
+        <span className="font-bold">Contat</span>
         <span className="flex items-center gap-x-1">
           <MdMail className="text-xl" /> mejl@adresa.com
         </span>
